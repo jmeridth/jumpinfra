@@ -1,13 +1,13 @@
 terraform {
   # should match .tool-versions in root of repo
-  required_version = "1.2.1"
+  required_version = "1.2.2"
   required_providers {
     aws = {
       source  = "hashicorp/aws"
       version = "~> 4.0"
     }
   }
-  backend "s3" {}
+  #backend "s3" {}
 }
 
 provider "aws" {
@@ -36,11 +36,7 @@ module "lb" {
   name        = var.stack_name
   subnets     = module.vpc.public_subnets
   environment = var.environment
-  security_groups = [
-    module.api_security_groups.lb,
-    module.web_security_groups.lb,
-    module.admin_security_groups.lb
-  ]
+  vpc_id      = module.vpc.id
 }
 
 module "lb_target_group" {
@@ -56,14 +52,21 @@ module "lb_target_group" {
 module "db" {
   source              = "./db"
   name                = var.stack_name
+  vpc_id              = module.vpc.id
   environment         = var.environment
   allocated_storage   = 10
+  port                = var.api_env_vars["TYPEORM_PORT"]
   engine              = var.api_env_vars["TYPEORM_CONNECTION"]
   engine_version      = var.api_env_vars["DB_ENGINE_VERSION"]
   instance_class      = var.api_env_vars["DB_INSTANCE_CLASS"]
   skip_final_snapshot = true
   username            = var.api_secrets["TYPEORM_USERNAME"]
   password            = var.api_secrets["TYPEORM_PASSWORD"]
+  private_subnets_ids = module.vpc.private_subnets.*.id
+  private_security_group_ids = [
+    aws_security_group.api_ecs_tasks.id,
+    aws_security_group.admin_ecs_tasks.id
+  ]
 }
 
 resource "aws_acm_certificate" "api" {

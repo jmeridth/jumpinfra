@@ -27,6 +27,10 @@ resource "aws_lb_target_group" "main" {
   tags = {
     Name = "${var.name}-tg-${var.environment}"
   }
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 # Redirect to https listener

@@ -13,7 +13,7 @@ variable "subnets" {
   description = "Comma separated list of subnet IDs"
 }
 
-variable "security_groups" {
-  type        = list(any)
-  description = "Comma separated list of security groups"
+variable "vpc_id" {
+  type        = string
+  description = "VPC ID"
 }

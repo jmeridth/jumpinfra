@@ -21,9 +21,12 @@ lint: ## Run tflint
       tflint $$line; \
     done < "tflint-enabled-directories";
 
+.PHONY : check
+check: lint validate ## Run lint and validate
+
 .PHONY : show
 show: ## Show Terraform
-	terraform show -json | python3 -m json.tool
+	terraform show -json | jq .
 
 .PHONY : console
 console: ## Terraform console

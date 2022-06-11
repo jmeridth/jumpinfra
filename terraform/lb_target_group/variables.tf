@@ -30,42 +30,42 @@ variable "additional_tls_cert_arns" {
 
 variable "health_interval" {
   type        = string
-  description = "Path to check if the service is healthy, e.g. \"/status\""
+  description = "Approximate amount of time, in seconds, between health checks of an individual target"
   default     = "30"
 }
 
 variable "health_protocol" {
   type        = string
-  description = "Path to check if the service is healthy, e.g. \"/status\""
+  description = "Protocol to use to connect with the target"
   default     = "HTTP"
 }
 
 variable "health_matcher" {
   type        = string
-  description = "Path to check if the service is healthy, e.g. \"/status\""
+  description = "Response codes to check if the service is healthy, e.g. \"/status\""
   default     = "200"
 }
 
 variable "health_timeout" {
   type        = string
-  description = "Path to check if the service is healthy, e.g. \"/status\""
+  description = "Amount of time, in seconds, during which no response means a failed health check"
   default     = "3"
 }
 
 variable "health_path" {
   type        = string
-  description = "Path to check if the service is healthy, e.g. \"/health\""
+  description = "Destination for the health check request"
   default     = "/health"
 }
 
 variable "health_unhealthy_threshold" {
   type        = string
-  description = "Path to check if the service is unhealthy, e.g. \"/status\""
+  description = "Number of consecutive health check failures required before considering the target unhealthy"
   default     = "2"
 }
 
 variable "health_healthy_threshold" {
   type        = string
-  description = "Path to check if the service is healthy, e.g. \"/status\""
+  description = "Number of consecutive health checks successes required before considering an unhealthy target healthy"
   default     = "3"
 }

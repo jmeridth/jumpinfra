@@ -3,16 +3,18 @@ locals {
   api_env_vars = merge(
     var.api_env_vars,
     tomap({
-      "TYPEORM_DATABASE"    = module.db.aws_db_address,
       "AWS_S3_BUCKET"       = module.s3.bucket_name,
       "REDIRECT_URL"        = "https://${var.environment}.jump.co",
       "ROLLBAR_ENVIRONMENT" = "jump-api-${var.environment}",
+      "TYPEORM_HOST"        = module.db.aws_db_address,
+      "TYPEORM_DATABASE"    = "${var.stack_name}${var.environment}"
     })
   )
   admin_env_vars = merge(
     var.admin_env_vars,
     tomap({
-      "TYPEORM_DATABASE" = module.db.aws_db_address,
+      "TYPEORM_HOST"     = module.db.aws_db_address,
+      "TYPEORM_DATABASE" = "${var.stack_name}${var.environment}"
       "AWS_S3_BUCKET"    = module.s3.bucket_name
     })
   )

@@ -1,3 +1,12 @@
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 4.0"
+    }
+  }
+}
+
 resource "aws_vpc" "main" {
   cidr_block           = var.cidr
   enable_dns_support   = true
@@ -106,15 +115,6 @@ resource "aws_flow_log" "main" {
   log_destination = aws_cloudwatch_log_group.main.arn
   traffic_type    = "ALL"
   vpc_id          = aws_vpc.main.id
-}
-
-terraform {
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 4.0"
-    }
-  }
 }
 
 resource "aws_cloudwatch_log_group" "main" {

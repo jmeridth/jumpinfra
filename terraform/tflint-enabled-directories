@@ -6,5 +6,4 @@ lb
 lb_target_group
 s3
 secrets
-security_groups
 vpc

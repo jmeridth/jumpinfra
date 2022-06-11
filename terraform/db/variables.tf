@@ -3,9 +3,19 @@ variable "name" {
   description = "Application name"
 }
 
+variable "vpc_id" {
+  type        = string
+  description = "VPC ID"
+}
+
 variable "environment" {
   type        = string
   description = "Envrionment"
+}
+
+variable "port" {
+  type        = string
+  description = "The port on which the DB accepts connections"
 }
 
 variable "allocated_storage" {
@@ -44,4 +54,14 @@ variable "password" {
   type        = string
   description = "DB password"
   sensitive   = true
+}
+
+variable "private_security_group_ids" {
+  type        = list(string)
+  description = "List of private security groups to associate"
+}
+
+variable "private_subnets_ids" {
+  type        = list(any)
+  description = "List of private subnet IDs"
 }

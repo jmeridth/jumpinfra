@@ -28,6 +28,21 @@ variable "subnets" {
   description = "List of subnet IDs"
 }
 
+variable "ecs_task_execution_role_arn" {
+  type        = string
+  description = "ECS Task Execution Role ARN"
+}
+
+variable "ecs_task_role_arn" {
+  type        = string
+  description = "ECS Task Execution Role ARN"
+}
+
+variable "ecs_task_execution_role_name" {
+  type        = string
+  description = "ECS Task Execution Role Name"
+}
+
 variable "ecs_service_security_groups" {
   type        = list(string)
   description = "List of security groups"

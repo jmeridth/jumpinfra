@@ -2,20 +2,36 @@ resource "aws_kms_key" "terraform_bucket_key" {
   description             = "This key is used to encrypt bucket objects"
   deletion_window_in_days = 10
   enable_key_rotation     = true
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 resource "aws_kms_alias" "key_alias" {
   name          = "alias/terraform-bucket-key-${var.environment}"
   target_key_id = aws_kms_key.terraform_bucket_key.key_id
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 resource "aws_s3_bucket" "terraform_state" {
   bucket = "${var.stack_name}-terraform-state-${var.environment}"
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 resource "aws_s3_bucket_acl" "main" {
   bucket = aws_s3_bucket.terraform_state.id
   acl    = "private"
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 resource "aws_s3_bucket_public_access_block" "block" {
@@ -25,12 +41,20 @@ resource "aws_s3_bucket_public_access_block" "block" {
   block_public_policy     = true
   ignore_public_acls      = true
   restrict_public_buckets = true
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 resource "aws_s3_bucket_versioning" "versioning" {
   bucket = aws_s3_bucket.terraform_state.id
   versioning_configuration {
     status = "Enabled"
+  }
+
+  lifecycle {
+    prevent_destroy = true
   }
 }
 
@@ -43,6 +67,10 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "encryption" {
       sse_algorithm     = "aws:kms"
     }
   }
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 resource "aws_dynamodb_table" "terraform_state" {
@@ -54,5 +82,9 @@ resource "aws_dynamodb_table" "terraform_state" {
   attribute {
     name = "LockID"
     type = "S"
+  }
+
+  lifecycle {
+    prevent_destroy = true
   }
 }
