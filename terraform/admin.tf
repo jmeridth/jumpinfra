@@ -62,10 +62,10 @@ resource "aws_lb_target_group" "admin_target_group" {
 
   health_check {
     healthy_threshold   = "3"
-    interval            = "30"
+    interval            = "180"
     protocol            = "HTTP"
     matcher             = "200"
-    timeout             = "3"
+    timeout             = "120"
     path                = "/health"
     unhealthy_threshold = "2"
   }

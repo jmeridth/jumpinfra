@@ -42,7 +42,7 @@ resource "aws_cloudwatch_log_group" "main" {
 resource "aws_ecs_task_definition" "main" {
   family                   = "${var.name}-task-${var.environment}"
   network_mode             = "awsvpc"
-  requires_compatibilities = ["EC2"]
+  requires_compatibilities = ["FARGATE"]
   execution_role_arn       = var.ecs_task_execution_role_arn
   task_role_arn            = var.ecs_task_role_arn
   memory                   = var.container_memory
