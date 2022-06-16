@@ -80,7 +80,7 @@ resource "aws_lb_target_group" "admin_target_group" {
 }
 
 resource "aws_lb_listener_rule" "admin" {
-  listener_arn = module.lb_target_group.aws_lb_listener_https_arn
+  listener_arn = module.lb.aws_lb_listener_https_arn
   priority     = 200
 
   action {
@@ -90,7 +90,7 @@ resource "aws_lb_listener_rule" "admin" {
 
   condition {
     path_pattern {
-      values = ["/admin/*"]
+      values = ["/admin"]
     }
   }
 

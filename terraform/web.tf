@@ -86,7 +86,7 @@ resource "aws_lb_target_group" "web_target_group" {
 }
 
 resource "aws_lb_listener_rule" "web" {
-  listener_arn = module.lb_target_group.aws_lb_listener_https_arn
+  listener_arn = module.lb.aws_lb_listener_https_arn
   priority     = 300
 
   action {

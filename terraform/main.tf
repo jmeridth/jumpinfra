@@ -7,7 +7,7 @@ terraform {
       version = "~> 4.0"
     }
   }
-  #backend "s3" {}
+  backend "s3" {}
 }
 
 provider "aws" {
@@ -32,22 +32,16 @@ module "vpc" {
 }
 
 module "lb" {
-  source      = "./lb"
-  name        = var.stack_name
-  subnets     = module.vpc.public_subnets
-  environment = var.environment
-  vpc_id      = module.vpc.id
-}
-
-module "lb_target_group" {
-  source                   = "./lb_target_group"
+  source                   = "./lb"
   name                     = var.stack_name
+  subnets                  = module.vpc.public_subnets
   environment              = var.environment
-  lb_arn                   = module.lb.aws_lb_arn
+  vpc_id                   = module.vpc.id
   default_tls_cert_arn     = aws_acm_certificate.web.arn
   additional_tls_cert_arns = [aws_acm_certificate.api.arn]
-  vpc_id                   = module.vpc.id
+  default_target_group_arn = aws_lb_target_group.web_target_group.arn
 }
+
 
 module "db" {
   source              = "./db"

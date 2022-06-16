@@ -86,7 +86,7 @@ resource "aws_lb_target_group" "api_target_group" {
 }
 
 resource "aws_lb_listener_rule" "api" {
-  listener_arn = module.lb_target_group.aws_lb_listener_https_arn
+  listener_arn = module.lb.aws_lb_listener_https_arn
   priority     = 100
 
   action {
@@ -96,7 +96,29 @@ resource "aws_lb_listener_rule" "api" {
 
   condition {
     path_pattern {
-      values = ["/v1/*"]
+      values = ["/v1"]
+    }
+  }
+
+  condition {
+    host_header {
+      values = ["api.${var.environment}.jump.co"]
+    }
+  }
+}
+
+resource "aws_lb_listener_rule" "api_health" {
+  listener_arn = module.lb.aws_lb_listener_https_arn
+  priority     = 150
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.api_target_group.arn
+  }
+
+  condition {
+    path_pattern {
+      values = ["/health"]
     }
   }
 
