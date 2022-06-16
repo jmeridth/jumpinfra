@@ -78,6 +78,7 @@ resource "aws_ecs_task_definition" "main" {
 resource "aws_ecs_service" "main" {
   name                               = "${var.name}-${var.environment}"
   cluster                            = var.cluster_id
+  enable_execute_command             = true
   task_definition                    = aws_ecs_task_definition.main.arn
   desired_count                      = var.service_desired_count
   deployment_minimum_healthy_percent = 50
