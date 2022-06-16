@@ -72,7 +72,7 @@ resource "aws_lb_target_group" "web_target_group" {
     protocol            = "HTTP"
     matcher             = "200"
     timeout             = "120"
-    path                = "/health"
+    path                = "/"
     unhealthy_threshold = "2"
   }
 
