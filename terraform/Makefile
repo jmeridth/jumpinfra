@@ -47,3 +47,36 @@ plan: ## Run Terraform Plan
 apply: ## Run Terraform Apply
 	export AWS_PROFILE=jump${ENV} && \
 	terraform apply -auto-approve -var-file="secrets.${ENV}.tfvars"
+
+.PHONY : api
+api: ## SSH onto ECS API instance
+	aws --profile jump${ENV} \
+	ecs execute-command \
+  --region us-west-2 \
+  --cluster jumpco-cluster-${ENV} \
+  --task $(shall aws --profile jump${ENV} ecs list-tasks) \
+  --container api-container-${ENV} \
+  --command "ls" \
+  -interactive
+
+.PHONY : admin
+admin: ## SSH onto ECS Admin instance
+	aws --profile jump${ENV} \
+	ecs execute-command \
+  --region us-west-2 \
+  --cluster jumpco-cluster-${ENV} \
+  --task $(shall aws --profile jump${ENV} ecs list-tasks) \
+  --container admin-container-${ENV} \
+  --command "ls" \
+  -interactive
+
+.PHONY : web
+web: ## SSH onto ECS Web instance
+	aws --profile jump${ENV} \
+	ecs execute-command \
+  --region us-west-2 \
+  --cluster jumpco-cluster-${ENV} \
+  --task $(shall aws --profile jump${ENV} ecs list-tasks) \
+  --container web-container-${ENV} \
+  --command "ls" \
+  -interactive

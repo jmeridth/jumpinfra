@@ -88,9 +88,8 @@ module "s3" {
   acl         = "public-read"
 }
 
-resource "aws_ecs_cluster" "main" {
-  name = "${var.stack_name}-cluster-${var.environment}"
-  tags = {
-    Name = "${var.stack_name}-cluster-${var.environment}"
-  }
+module "ecs_cluster" {
+  source      = "./ecs_cluster"
+  name        = var.stack_name
+  environment = var.environment
 }

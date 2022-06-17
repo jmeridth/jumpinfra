@@ -5,11 +5,11 @@ module "api_ecr" {
 }
 
 module "api" {
-  source                       = "./ecs"
+  source                       = "./ecs_service"
   name                         = local.api_name
   environment                  = var.environment
-  cluster_id                   = aws_ecs_cluster.main.id
-  cluster_name                 = aws_ecs_cluster.main.name
+  cluster_id                   = module.ecs_cluster.id
+  cluster_name                 = module.ecs_cluster.name
   aws_lb_target_group_arn      = aws_lb_target_group.api_target_group.arn
   container_image              = module.api_ecr.aws_ecr_repository_url
   container_env_vars           = local.api_env_vars
