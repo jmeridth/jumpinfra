@@ -8,8 +8,8 @@ module "api" {
   source                       = "./ecs_service"
   name                         = local.api_name
   environment                  = var.environment
-  cluster_id                   = module.ecs_cluster.id
-  cluster_name                 = module.ecs_cluster.name
+  cluster_id                   = aws_ecs_cluster.main.id
+  cluster_name                 = aws_ecs_cluster.main.name
   aws_lb_target_group_arn      = aws_lb_target_group.api_target_group.arn
   container_image              = module.api_ecr.aws_ecr_repository_url
   container_env_vars           = local.api_env_vars
@@ -19,9 +19,10 @@ module "api" {
   container_secrets            = module.api_secrets.secrets_map
   container_secrets_arn        = module.api_secrets.secrets_arn
   ecs_service_security_groups  = [aws_security_group.api_ecs_tasks.id]
+  iam_policy_encrypt_logs_json = data.aws_iam_policy_document.ecs_task_encrypt_logs.json
   region                       = var.aws_region
   service_desired_count        = 2
-  subnets                      = module.vpc.private_subnets
+  subnets                      = aws_subnet.private
   ecs_task_execution_role_name = aws_iam_role.ecs_task_execution_role.name
   ecs_task_execution_role_arn  = aws_iam_role.ecs_task_execution_role.arn
   ecs_task_role_arn            = aws_iam_role.ecs_task_role.arn
@@ -29,7 +30,7 @@ module "api" {
 
 resource "aws_security_group" "api_ecs_tasks" {
   name   = "${local.api_name}-sg-task-${var.environment}"
-  vpc_id = module.vpc.id
+  vpc_id = aws_vpc.main.id
 
   ingress {
     protocol         = "tcp"
@@ -63,7 +64,7 @@ resource "aws_lb_target_group" "api_target_group" {
   name        = "${local.api_name}-tg-${var.environment}"
   port        = 80
   protocol    = "HTTP"
-  vpc_id      = module.vpc.id
+  vpc_id      = aws_vpc.main.id
   target_type = "ip"
 
   health_check {
@@ -87,7 +88,7 @@ resource "aws_lb_target_group" "api_target_group" {
 }
 
 resource "aws_lb_listener_rule" "api" {
-  listener_arn = module.lb.aws_lb_listener_https_arn
+  listener_arn = aws_lb_listener.https.arn
   priority     = 100
 
   action {
@@ -109,7 +110,7 @@ resource "aws_lb_listener_rule" "api" {
 }
 
 resource "aws_lb_listener_rule" "api_health" {
-  listener_arn = module.lb.aws_lb_listener_https_arn
+  listener_arn = aws_lb_listener.https.arn
   priority     = 150
 
   action {

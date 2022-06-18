@@ -34,9 +34,9 @@ resource "aws_iam_role" "ecs_task_role" {
   })
 }
 
-resource "aws_iam_policy" "kms" {
-  name        = "${var.stack_name}-kms-cluster"
-  description = "Policy that allows ecs cluster kms decrption"
+resource "aws_iam_policy" "kms_decrypt" {
+  name        = "${var.stack_name}-kms-decrypt"
+  description = "Policy that allows kms decrption"
 
   policy = jsonencode({
     Version = "2012-10-17",
@@ -122,6 +122,34 @@ resource "aws_iam_policy" "dynamodb" {
   })
 }
 
+data "aws_iam_policy_document" "ecs_task_encrypt_logs" {
+  statement {
+    sid    = ""
+    effect = "Allow"
+    principals {
+      type        = "AWS"
+      identifiers = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"]
+    }
+    actions   = ["kms:*"]
+    resources = ["*"]
+  }
+  statement {
+    effect = "Allow"
+    principals {
+      type        = "Service"
+      identifiers = ["logs.${var.aws_region}.amazonaws.com"]
+    }
+    actions = [
+      "kms:Encrypt*",
+      "kms:Decrypt*",
+      "kms:ReEncrypt*",
+      "kms:GenerateDataKey*",
+      "kms:Describe*"
+    ]
+    resources = ["*"]
+  }
+}
+
 resource "aws_iam_role_policy_attachment" "ecs_task_execution_role_policy_attachment" {
   role       = aws_iam_role.ecs_task_execution_role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
@@ -142,9 +170,9 @@ resource "aws_iam_role_policy_attachment" "ecs_task_role_execute_command_policy_
   policy_arn = aws_iam_policy.execute_command.arn
 }
 
-resource "aws_iam_role_policy_attachment" "ecs_task_role_kms_policy_attachment" {
+resource "aws_iam_role_policy_attachment" "ecs_task_role_kms_decrypt_policy_attachment" {
   role       = aws_iam_role.ecs_task_role.name
-  policy_arn = aws_iam_policy.kms.arn
+  policy_arn = aws_iam_policy.kms_decrypt.arn
 }
 
 resource "aws_iam_role_policy_attachment" "ecs_task_role_logs_policy_attachment" {

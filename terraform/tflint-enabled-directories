@@ -1,9 +1,5 @@
 .
-db
 ecr
-ecs_cluster
 ecs_service
-lb
 s3
 secrets
-vpc

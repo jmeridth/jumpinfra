@@ -13,6 +13,11 @@ variable "region" {
   description = "the AWS region in which resources are created"
 }
 
+variable "iam_policy_encrypt_logs_json" {
+  type        = string
+  description = "IAM Policy JSON for ECS Task ecryption with KMS key"
+}
+
 variable "cluster_name" {
   type        = string
   description = "Name of ECS Cluster"

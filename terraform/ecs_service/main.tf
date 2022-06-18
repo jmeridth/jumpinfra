@@ -12,19 +12,21 @@ resource "aws_iam_policy" "secrets" {
   description = "Policy that allows access to the secrets we created"
 
   policy = jsonencode({
-    "Version" = "2012-10-17",
-    "Statement" = [
+    Version = "2012-10-17",
+    Statement = [
       {
-        "Sid"    = "AccessSecrets",
-        "Effect" = "Allow",
-        "Action" = [
+        Sid    = "AccessSecrets",
+        Effect = "Allow",
+        Action = [
           "secretsmanager:GetSecretValue"
         ],
-        "Resource" = var.container_secrets_arn
+        Resource = var.container_secrets_arn
       }
     ]
   })
 }
+
+
 
 resource "aws_iam_role_policy_attachment" "ecs_task_role_policy_attachment_for_secrets" {
   role       = var.ecs_task_execution_role_name
@@ -32,11 +34,27 @@ resource "aws_iam_role_policy_attachment" "ecs_task_role_policy_attachment_for_s
 }
 
 resource "aws_cloudwatch_log_group" "main" {
-  name = "/ecs/${var.name}-task-${var.environment}"
-
+  name       = "/ecs/${var.name}-task-${var.environment}"
+  kms_key_id = aws_kms_key.ecs_task.arn
   tags = {
     Name = "${var.name}-task-${var.environment}"
   }
+}
+
+resource "aws_kms_key" "ecs_task" {
+  description             = "This key is used to encrypt communication for ${var.name} ecs service"
+  deletion_window_in_days = 10
+  enable_key_rotation     = true
+  policy                  = var.iam_policy_encrypt_logs_json
+
+  tags = {
+    Name = "${var.name}-ecs-service-key-${var.environment}"
+  }
+}
+
+resource "aws_kms_alias" "ecs_service_key_alias" {
+  name          = "alias/${var.name}-ecs-service-key-${var.environment}"
+  target_key_id = aws_kms_key.ecs_task.key_id
 }
 
 resource "aws_ecs_task_definition" "main" {
@@ -54,6 +72,9 @@ resource "aws_ecs_task_definition" "main" {
     environment = local.container_env_vars
     memory      = var.container_memory
     cpu         = var.container_cpu
+    linuxParameters = {
+      initProcessEnabled = true
+    }
     portMappings = [{
       protocol      = "tcp"
       containerPort = var.container_port

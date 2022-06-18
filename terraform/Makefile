@@ -18,7 +18,7 @@ validate: ## Terraform validate
 .PHONY : lint
 lint: ## Run tflint
 	@while read line; do \
-      tflint $$line; \
+      tflint $$line --var-file="secrets.${ENV}.tfvars"; \
     done < "tflint-enabled-directories";
 
 .PHONY : check
