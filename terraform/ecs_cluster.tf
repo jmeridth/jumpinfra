@@ -29,6 +29,7 @@ resource "aws_kms_key" "ecs_cluster" {
   description             = "This key is used to encrypt communication between client and ecs tasks"
   deletion_window_in_days = 10
   enable_key_rotation     = true
+  policy                  = data.aws_iam_policy_document.ecs_task_encrypt_logs.json
 
   tags = {
     Name = "${var.stack_name}-cluster-key-${var.environment}"

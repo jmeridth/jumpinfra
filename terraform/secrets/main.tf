@@ -10,25 +10,10 @@ terraform {
   }
 }
 
-resource "aws_secretsmanager_secret" "secrets" {
-  name                    = "${var.name}-secrets-${var.environment}"
-  recovery_window_in_days = 0
-
-  tags = {
-    "Name" = "${var.name}-secrets-${var.environment}"
-  }
-}
-
-
-resource "aws_secretsmanager_secret_version" "secrets" {
-  secret_id     = aws_secretsmanager_secret.secrets.id
-  secret_string = jsonencode(var.secrets)
-}
-
-
-locals {
-  secret_map = [{
-    name      = "${var.name}-secrets-${var.environment}"
-    valueFrom = aws_secretsmanager_secret_version.secrets.arn
-  }]
+resource "aws_ssm_parameter" "parameter" {
+  for_each    = var.secret_keys
+  name        = "/${var.environment}/${var.name}/${each.key}"
+  description = "${var.environment} environment ${var.name} app ${each.key} secret"
+  type        = "SecureString"
+  value       = var.secret_values[each.key]
 }

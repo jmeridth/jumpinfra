@@ -7,20 +7,20 @@ terraform {
   }
 }
 
-resource "aws_iam_policy" "secrets" {
-  name        = "${var.name}-task-policy-secrets"
-  description = "Policy that allows access to the secrets we created"
+resource "aws_iam_policy" "parameter_store" {
+  name        = "${var.name}-task-policy-parameter-store"
+  description = "Policy that allows access to the parameter store entries we created"
 
   policy = jsonencode({
     Version = "2012-10-17",
     Statement = [
       {
-        Sid    = "AccessSecrets",
         Effect = "Allow",
         Action = [
-          "secretsmanager:GetSecretValue"
+          "ssm:GetParameter*",
+          "ssm:DescribeParameters*"
         ],
-        Resource = var.container_secrets_arn
+        Resource = "arn:aws:ssm:*:*:parameter/${var.environment}/${var.name}/*"
       }
     ]
   })
@@ -30,7 +30,7 @@ resource "aws_iam_policy" "secrets" {
 
 resource "aws_iam_role_policy_attachment" "ecs_task_role_policy_attachment_for_secrets" {
   role       = var.ecs_task_execution_role_name
-  policy_arn = aws_iam_policy.secrets.arn
+  policy_arn = aws_iam_policy.parameter_store.arn
 }
 
 resource "aws_cloudwatch_log_group" "main" {

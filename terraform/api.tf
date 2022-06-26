@@ -16,8 +16,7 @@ module "api" {
   container_port               = local.api_container_port
   container_cpu                = 256
   container_memory             = 512
-  container_secrets            = module.api_secrets.secrets_map
-  container_secrets_arn        = module.api_secrets.secrets_arn
+  container_secrets            = module.api_secrets.secrets
   ecs_service_security_groups  = [aws_security_group.api_ecs_tasks.id]
   iam_policy_encrypt_logs_json = data.aws_iam_policy_document.ecs_task_encrypt_logs.json
   region                       = var.aws_region
@@ -54,10 +53,11 @@ resource "aws_security_group" "api_ecs_tasks" {
 }
 
 module "api_secrets" {
-  source      = "./secrets"
-  name        = local.api_name
-  environment = var.environment
-  secrets     = var.api_secrets
+  source        = "./secrets"
+  name          = local.api_name
+  environment   = var.environment
+  secret_keys   = local.api_secret_keys
+  secret_values = var.api_secrets
 }
 
 resource "aws_lb_target_group" "api_target_group" {

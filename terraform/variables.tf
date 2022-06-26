@@ -42,7 +42,6 @@ variable "api_secrets" {
   type        = map(string)
   default     = {}
   description = "API Secrets (default: {})"
-  sensitive   = true
 }
 
 variable "web_env_vars" {
@@ -55,7 +54,6 @@ variable "web_secrets" {
   type        = map(string)
   default     = {}
   description = "Web Secrets (default: {})"
-  sensitive   = true
 }
 
 variable "admin_env_vars" {
@@ -68,6 +66,5 @@ variable "admin_secrets" {
   type        = map(string)
   default     = {}
   description = "Admin Secrets (default: {})"
-  sensitive   = true
 }
 

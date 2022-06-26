@@ -94,11 +94,6 @@ variable "container_secrets" {
   sensitive   = true
 }
 
-variable "container_secrets_arn" {
-  type        = string
-  description = "ARN for secrets"
-}
-
 locals {
   container_env_vars = [for k, v in var.container_env_vars : {
     name  = k

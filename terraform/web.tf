@@ -16,8 +16,7 @@ module "web" {
   container_port               = local.web_container_port
   container_cpu                = 256
   container_memory             = 512
-  container_secrets            = module.web_secrets.secrets_map
-  container_secrets_arn        = module.web_secrets.secrets_arn
+  container_secrets            = module.web_secrets.secrets
   ecs_service_security_groups  = [aws_security_group.web_ecs_tasks.id]
   iam_policy_encrypt_logs_json = data.aws_iam_policy_document.ecs_task_encrypt_logs.json
   region                       = var.aws_region
@@ -54,10 +53,11 @@ resource "aws_security_group" "web_ecs_tasks" {
 }
 
 module "web_secrets" {
-  source      = "./secrets"
-  name        = local.web_name
-  environment = var.environment
-  secrets     = var.web_secrets
+  source        = "./secrets"
+  name          = local.web_name
+  environment   = var.environment
+  secret_keys   = local.web_secret_keys
+  secret_values = var.web_secrets
 }
 
 resource "aws_lb_target_group" "web_target_group" {

@@ -10,8 +10,7 @@ module "admin" {
   container_port               = local.admin_container_port
   container_cpu                = 256
   container_memory             = 512
-  container_secrets            = module.admin_secrets.secrets_map
-  container_secrets_arn        = module.admin_secrets.secrets_arn
+  container_secrets            = module.admin_secrets.secrets
   ecs_service_security_groups  = [aws_security_group.admin_ecs_tasks.id]
   iam_policy_encrypt_logs_json = data.aws_iam_policy_document.ecs_task_encrypt_logs.json
   region                       = var.aws_region
@@ -48,10 +47,11 @@ resource "aws_security_group" "admin_ecs_tasks" {
 }
 
 module "admin_secrets" {
-  source      = "./secrets"
-  name        = local.admin_name
-  environment = var.environment
-  secrets     = var.admin_secrets
+  source        = "./secrets"
+  name          = local.admin_name
+  environment   = var.environment
+  secret_keys   = local.admin_secret_keys
+  secret_values = var.admin_secrets
 }
 
 resource "aws_lb_target_group" "admin_target_group" {
