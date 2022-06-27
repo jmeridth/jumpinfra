@@ -11,6 +11,7 @@ resource "aws_db_instance" "jump" {
   password             = var.api_secrets["TYPEORM_PASSWORD"]
   db_subnet_group_name = aws_db_subnet_group.private.id
   vpc_security_group_ids = [
+    aws_security_group.db.id,
     aws_security_group.api_ecs_tasks.id,
     aws_security_group.admin_ecs_tasks.id
   ]
