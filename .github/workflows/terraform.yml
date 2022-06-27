@@ -92,4 +92,4 @@ jobs:
         working-directory: ./terraform/${{ matrix.directory }}
       - name: TFLint ${{ matrix.directory }}
         working-directory: ./terraform/${{ matrix.directory }}
-        run: tflint -f compact . --var-file="secrets.env.tfvars.example"
+        run: tflint -f compact . --var-file="$GITHUB_WORKSPACE/terraform/secrets.env.tfvars.example"
