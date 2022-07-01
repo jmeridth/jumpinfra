@@ -50,7 +50,7 @@ module "admin_secrets" {
   source        = "./secrets"
   name          = local.admin_name
   environment   = var.environment
-  secret_keys   = local.admin_secret_keys
+  secret_keys   = var.admin_secrets_keys
   secret_values = var.admin_secrets
 }
 

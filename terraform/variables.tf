@@ -38,10 +38,17 @@ variable "api_env_vars" {
   description = "API Environment Variables (default: {})"
 }
 
+variable "api_secrets_keys" {
+  type        = list(string)
+  default     = []
+  description = "API Secrets Keys (default: [])"
+}
+
 variable "api_secrets" {
   type        = map(string)
   default     = {}
   description = "API Secrets (default: {})"
+  sensitive   = true
 }
 
 variable "web_env_vars" {
@@ -50,10 +57,17 @@ variable "web_env_vars" {
   description = "Web Environment Variables (default: {})"
 }
 
+variable "web_secrets_keys" {
+  type        = list(string)
+  default     = []
+  description = "Web Secrets Keys (default: [])"
+}
+
 variable "web_secrets" {
   type        = map(string)
   default     = {}
   description = "Web Secrets (default: {})"
+  sensitive   = true
 }
 
 variable "admin_env_vars" {
@@ -62,9 +76,16 @@ variable "admin_env_vars" {
   description = "Admin Environment Variables (default: {})"
 }
 
+variable "admin_secrets_keys" {
+  type        = list(string)
+  default     = []
+  description = "Admin Secrets Keys (default: [])"
+}
+
 variable "admin_secrets" {
   type        = map(string)
   default     = {}
   description = "Admin Secrets (default: {})"
+  sensitive   = true
 }
 

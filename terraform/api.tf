@@ -56,7 +56,7 @@ module "api_secrets" {
   source        = "./secrets"
   name          = local.api_name
   environment   = var.environment
-  secret_keys   = local.api_secret_keys
+  secret_keys   = var.api_secrets_keys
   secret_values = var.api_secrets
 }
 

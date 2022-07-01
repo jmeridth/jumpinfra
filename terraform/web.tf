@@ -56,7 +56,7 @@ module "web_secrets" {
   source        = "./secrets"
   name          = local.web_name
   environment   = var.environment
-  secret_keys   = local.web_secret_keys
+  secret_keys   = var.web_secrets_keys
   secret_values = var.web_secrets
 }
 
