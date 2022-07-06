@@ -7,45 +7,9 @@ terraform {
   }
 }
 
-resource "aws_iam_role" "ecs_task_execution_role" {
-  name = "${var.name}-ecsTaskExecutionRole"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [
-      {
-        Action = "sts:AssumeRole",
-        Principal = {
-          Service = "ecs-tasks.amazonaws.com"
-        },
-        Effect = "Allow",
-        Sid    = ""
-      }
-    ]
-  })
-}
-
-resource "aws_iam_role" "ecs_task_role" {
-  name = "${var.name}-ecsTaskRole"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [
-      {
-        Action = "sts:AssumeRole",
-        Principal = {
-          Service = "ecs-tasks.amazonaws.com"
-        },
-        Effect = "Allow",
-        Sid    = ""
-      }
-    ]
-  })
-}
-
-resource "aws_iam_policy" "dynamodb" {
-  name        = "${var.name}-task-policy-dynamodb"
-  description = "Policy that allows access to DynamoDB"
+resource "aws_iam_policy" "parameter_store" {
+  name        = "${var.name}-task-policy-parameter-store"
+  description = "Policy that allows access to the parameter store entries we created"
 
   policy = jsonencode({
     Version = "2012-10-17",
@@ -53,80 +17,64 @@ resource "aws_iam_policy" "dynamodb" {
       {
         Effect = "Allow",
         Action = [
-          "dynamodb:CreateTable",
-          "dynamodb:UpdateTimeToLive",
-          "dynamodb:PutItem",
-          "dynamodb:DescribeTable",
-          "dynamodb:ListTables",
-          "dynamodb:DeleteItem",
-          "dynamodb:GetItem",
-          "dynamodb:Scan",
-          "dynamodb:Query",
-          "dynamodb:UpdateItem",
-          "dynamodb:UpdateTable"
+          "ssm:GetParameter*",
+          "ssm:DescribeParameters*"
         ],
-        Resource = "*"
-      }
-    ]
-  })
-}
-
-resource "aws_iam_policy" "secrets" {
-  name        = "${var.name}-task-policy-secrets"
-  description = "Policy that allows access to the secrets we created"
-
-  policy = jsonencode({
-    "Version" = "2012-10-17",
-    "Statement" = [
-      {
-        "Sid"    = "AccessSecrets",
-        "Effect" = "Allow",
-        "Action" = [
-          "secretsmanager:GetSecretValue"
-        ],
-        "Resource" = var.container_secrets_arn
+        Resource = "arn:aws:ssm:*:*:parameter/${var.environment}/${var.name}/*"
       }
     ]
   })
 }
 
 
-resource "aws_iam_role_policy_attachment" "ecs_task_execution_role_policy_attachment" {
-  role       = aws_iam_role.ecs_task_execution_role.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
-}
-
-resource "aws_iam_role_policy_attachment" "ecs_task_role_policy_attachment" {
-  role       = aws_iam_role.ecs_task_role.name
-  policy_arn = aws_iam_policy.dynamodb.arn
-}
 
 resource "aws_iam_role_policy_attachment" "ecs_task_role_policy_attachment_for_secrets" {
-  role       = aws_iam_role.ecs_task_execution_role.name
-  policy_arn = aws_iam_policy.secrets.arn
+  role       = var.ecs_task_execution_role_name
+  policy_arn = aws_iam_policy.parameter_store.arn
 }
 
 resource "aws_cloudwatch_log_group" "main" {
-  name = "/ecs/${var.name}-task-${var.environment}"
-
+  name       = "/ecs/${var.name}-task-${var.environment}"
+  kms_key_id = aws_kms_key.ecs_task.arn
   tags = {
     Name = "${var.name}-task-${var.environment}"
   }
 }
 
+resource "aws_kms_key" "ecs_task" {
+  description             = "This key is used to encrypt communication for ${var.name} ecs service"
+  deletion_window_in_days = 10
+  enable_key_rotation     = true
+  policy                  = var.iam_policy_encrypt_logs_json
+
+  tags = {
+    Name = "${var.name}-ecs-service-key-${var.environment}"
+  }
+}
+
+resource "aws_kms_alias" "ecs_service_key_alias" {
+  name          = "alias/${var.name}-ecs-service-key-${var.environment}"
+  target_key_id = aws_kms_key.ecs_task.key_id
+}
+
 resource "aws_ecs_task_definition" "main" {
   family                   = "${var.name}-task-${var.environment}"
   network_mode             = "awsvpc"
-  requires_compatibilities = ["EC2"]
-  cpu                      = var.container_cpu
+  requires_compatibilities = ["FARGATE"]
+  execution_role_arn       = var.ecs_task_execution_role_arn
+  task_role_arn            = var.ecs_task_role_arn
   memory                   = var.container_memory
-  execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
-  task_role_arn            = aws_iam_role.ecs_task_role.arn
+  cpu                      = var.container_cpu
   container_definitions = jsonencode([{
     name        = local.container_name
     image       = "${var.container_image}:latest"
     essential   = true
     environment = local.container_env_vars
+    memory      = var.container_memory
+    cpu         = var.container_cpu
+    linuxParameters = {
+      initProcessEnabled = true
+    }
     portMappings = [{
       protocol      = "tcp"
       containerPort = var.container_port
@@ -151,12 +99,13 @@ resource "aws_ecs_task_definition" "main" {
 resource "aws_ecs_service" "main" {
   name                               = "${var.name}-${var.environment}"
   cluster                            = var.cluster_id
+  enable_execute_command             = true
   task_definition                    = aws_ecs_task_definition.main.arn
   desired_count                      = var.service_desired_count
   deployment_minimum_healthy_percent = 50
   deployment_maximum_percent         = 200
   health_check_grace_period_seconds  = 60
-  launch_type                        = "EC2"
+  launch_type                        = "FARGATE"
   scheduling_strategy                = "REPLICA"
 
   network_configuration {
@@ -171,11 +120,9 @@ resource "aws_ecs_service" "main" {
     container_port   = var.container_port
   }
 
-  # we ignore task_definition changes as the revision changes on deploy
-  # of a new version of the application
   # desired_count is ignored as it can change due to autoscaling policy
   lifecycle {
-    ignore_changes = [task_definition, desired_count]
+    ignore_changes = [desired_count]
   }
 }
 

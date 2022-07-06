@@ -1,7 +1,3 @@
-output "secrets_arn" {
-  value = aws_secretsmanager_secret_version.secrets.arn
-}
-
-output "secrets_map" {
-  value = local.secret_map
+output "secrets" {
+  value = [for s in aws_ssm_parameter.parameter : { name = regex(".*\\/(.*)$", s.name)[0], valueFrom = s.arn }]
 }

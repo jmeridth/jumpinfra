@@ -1,10 +1,5 @@
 .
-db
 ecr
-ecs
-lb
-lb_target_group
+ecs_service
 s3
 secrets
-security_groups
-vpc

@@ -13,6 +13,11 @@ variable "region" {
   description = "the AWS region in which resources are created"
 }
 
+variable "iam_policy_encrypt_logs_json" {
+  type        = string
+  description = "IAM Policy JSON for ECS Task ecryption with KMS key"
+}
+
 variable "cluster_name" {
   type        = string
   description = "Name of ECS Cluster"
@@ -26,6 +31,21 @@ variable "cluster_id" {
 variable "subnets" {
   type        = list(any)
   description = "List of subnet IDs"
+}
+
+variable "ecs_task_execution_role_arn" {
+  type        = string
+  description = "ECS Task Execution Role ARN"
+}
+
+variable "ecs_task_role_arn" {
+  type        = string
+  description = "ECS Task Execution Role ARN"
+}
+
+variable "ecs_task_execution_role_name" {
+  type        = string
+  description = "ECS Task Execution Role Name"
 }
 
 variable "ecs_service_security_groups" {
@@ -72,11 +92,6 @@ variable "container_secrets" {
   type        = list(any)
   description = "The container secret environmnent variables"
   sensitive   = true
-}
-
-variable "container_secrets_arn" {
-  type        = string
-  description = "ARN for secrets"
 }
 
 locals {
