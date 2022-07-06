@@ -22,6 +22,7 @@ locals {
     })
   )
   availability_zones = ["${var.aws_region}a", "${var.aws_region}b"]
+  non_web_cert_arns  = [aws_acm_certificate.api.arn, aws_acm_certificate.admin.arn]
   db_name            = "${var.stack_name}${var.environment}"
   web_container_port = "3000"
   web_env_vars = merge(

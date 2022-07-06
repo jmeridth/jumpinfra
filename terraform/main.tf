@@ -32,6 +32,15 @@ resource "aws_acm_certificate" "api" {
   }
 }
 
+resource "aws_acm_certificate" "admin" {
+  domain_name       = "admin.test.jump.co"
+  validation_method = "DNS"
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
 resource "aws_acm_certificate" "web" {
   domain_name       = "test.jump.co"
   validation_method = "DNS"

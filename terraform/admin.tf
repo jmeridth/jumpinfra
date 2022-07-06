@@ -92,13 +92,8 @@ resource "aws_lb_listener_rule" "admin" {
 
   condition {
     host_header {
-      values = ["api.${var.environment}.jump.co"]
+      values = ["admin.${var.environment}.jump.co"]
     }
   }
 
-  condition {
-    path_pattern {
-      values = ["/*"]
-    }
-  }
 }
