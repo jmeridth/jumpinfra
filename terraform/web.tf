@@ -97,12 +97,6 @@ resource "aws_lb_listener_rule" "web" {
   }
 
   condition {
-    path_pattern {
-      values = ["/*"]
-    }
-  }
-
-  condition {
     host_header {
       values = ["${var.environment}.jump.co"]
     }
