@@ -97,14 +97,14 @@ resource "aws_lb_listener_rule" "api" {
   }
 
   condition {
-    path_pattern {
-      values = ["/v1"]
+    host_header {
+      values = ["api.${var.environment}.jump.co"]
     }
   }
 
   condition {
-    host_header {
-      values = ["api.${var.environment}.jump.co"]
+    path_pattern {
+      values = ["/v1*"]
     }
   }
 }
