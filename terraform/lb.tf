@@ -84,8 +84,8 @@ resource "aws_lb_listener" "https" {
 }
 
 resource "aws_lb_listener_certificate" "additional" {
-  count           = length([aws_acm_certificate.api.arn])
-  certificate_arn = element([aws_acm_certificate.api.arn], count.index)
+  count           = length(local.non_web_cert_arns)
+  certificate_arn = element(local.non_web_cert_arns, count.index)
   listener_arn    = aws_lb_listener.https.arn
 }
 
