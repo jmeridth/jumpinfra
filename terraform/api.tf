@@ -89,7 +89,7 @@ resource "aws_lb_target_group" "api_target_group" {
 
 resource "aws_lb_listener_rule" "api" {
   listener_arn = aws_lb_listener.https.arn
-  priority     = 100
+  priority     = 125
 
   action {
     type             = "forward"
@@ -102,6 +102,35 @@ resource "aws_lb_listener_rule" "api" {
     }
   }
 }
+
+resource "aws_lb_listener_rule" "api_to_admin" {
+  listener_arn = aws_lb_listener.https.arn
+  priority     = 100
+
+  action {
+    type = "redirect"
+
+    redirect {
+      port        = "443"
+      protocol    = "HTTPS"
+      status_code = "HTTP_301"
+      host        = "admin.${var.environment}.jump.co"
+    }
+  }
+
+  condition {
+    host_header {
+      values = ["api.${var.environment}.jump.co"]
+    }
+  }
+
+  condition {
+    path_pattern {
+      values = ["/admin*"]
+    }
+  }
+}
+
 
 resource "aws_lb_listener_rule" "api_health" {
   listener_arn = aws_lb_listener.https.arn
