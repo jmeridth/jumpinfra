@@ -18,7 +18,11 @@ crash.*.log
 
 # Allow all .tfvars.example files, which are templates for the actual tfvars
 # files that users will need
-!*.tfvars.example
+!*.example.tfvars.json
+
+# Allow all envvars.*.tfvars.json files, which include the environment variables
+# for an application that are not secrets
+!envvars.*.tfvars.json
 
 # Ignore override files as they are usually used to override resources locally and so
 # are not checked in

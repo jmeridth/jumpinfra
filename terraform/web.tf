@@ -12,7 +12,7 @@ module "web" {
   cluster_name                 = aws_ecs_cluster.main.name
   aws_lb_target_group_arn      = aws_lb_target_group.web_target_group.arn
   container_image              = module.web_ecr.aws_ecr_repository_url
-  container_env_vars           = local.web_env_vars
+  container_env_vars           = var.web_env_vars
   container_port               = local.web_container_port
   container_cpu                = 256
   container_memory             = 512

@@ -1,0 +1,33 @@
+name: Slack Notify
+on:
+  workflow_call:
+    inputs:
+      env:
+        required: true
+        type: string
+      eventType:
+        required: true
+        type: string
+      channel:
+        required: true
+        type: string
+      status:
+        required: true
+        type: string
+jobs:
+  slackNotify:
+    name: Slack Notify
+    runs-on: ubuntu-latest
+    steps:
+      - name: Slack Notification
+        if: ${{ always() }}
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_CHANNEL: ${{ inputs.channel }}
+          SLACK_COLOR: ${{ inputs.status }}
+          SLACK_MESSAGE: |
+            Terraform ${{ inputs.eventType}} ${{ inputs.status }}
+            Details: https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}
+          SLACK_TITLE: "Infra Terraform ${{ inputs.eventTypye }}: ${{ inputs.env }} environment"
+          SLACK_WEBHOOK: ${{ secrets.SLACK_INFRA_WEBHOOK_URL }}
+          SLACK_FOOTER: "Powered by GitHub Actions and Terraform"

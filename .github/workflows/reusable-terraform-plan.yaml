@@ -1,0 +1,96 @@
+name: Terraform Plan
+on:
+  workflow_call:
+    inputs:
+      env:
+        required: true
+        type: string
+      region:
+        required: true
+        type: string
+jobs:
+  terraformPlan:
+    name: Terraform Plan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Configure AWS credentials
+        id: aws-creds
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_TERRAFORM_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_TERRAFORM_SECRET_ACCESS_KEY }}
+          aws-region: ${{ inputs.region }}
+      - run: echo ${{ secrets[format('{0}_SECRETS', inputs.env)] }} > ./${{ inputs.env }}.tmp
+      - run: base64 -d -i ./${{ inputs.env }}.tmp -o ./terraform/secrets.${{ inputs.env }}.tfvars.json
+      - run: rm ./${{ inputs.env }}.tmp
+      - uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.2.2
+      - name: Terraform fmt
+        id: fmt
+        run: terraform fmt -check
+        working-directory: terraform
+        continue-on-error: true
+      - name: Terraform Init
+        id: init
+        run: |
+          export TF_CLI_ARGS_init=-backend-config=${{ inputs.env }}.tfbackend
+          terraform init --var-file="secrets.${{ inputs.env }}.tfvars.json" --var-file="envvars.${{ input.env }}.tfvars.json"
+        working-directory: terraform
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate -no-color
+        working-directory: terraform
+      - name: TFLint
+        run: make lint
+        working-directory: terraform
+      - name: Terraform Plan
+        id: plan
+        run: |
+          export TF_CLI_ARGS_init=-backend-config=${{ inputs.env }}.tfbackend
+          terraform plan -no-color --var-file="secrets.${{ inputs.env }}.tfvars.json" --var-file="envvars.${{ input.env }}.tfvars.json"
+        continue-on-error: true
+        working-directory: terraform
+      - name: Terraform Plan Output
+        uses: actions/github-script@v6
+        env:
+          PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
+            #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
+            #### Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
+            <details><summary>Validation Output</summary>
+
+            \`\`\`\n
+            ${{ steps.validate.outputs.stdout }}
+            \`\`\`
+
+            </details>
+
+            #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
+
+            <details><summary>Show Plan</summary>
+
+            \`\`\`\n
+            ${process.env.PLAN}
+            \`\`\`
+
+            </details>
+
+            *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Working Directory: \`${{ env.tf_actions_working_dir }}\`, Workflow: \`${{ github.workflow }}\`*`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            })
+            - name: Terraform Plan Status
+              if: steps.plan.outcome == 'failure'
+              run: exit 1
+      - name: Terraform Plan Status
+        if: steps.plan.outcome == 'failure'
+        run: exit 1

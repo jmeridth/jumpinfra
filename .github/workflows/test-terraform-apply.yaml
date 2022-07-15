@@ -1,0 +1,19 @@
+name: Deploy To Test Environment
+on:
+  push:
+    branches:
+      - test
+jobs:
+  testTerraformApply:
+    uses: FractionalDev/jump-infra/.github/workflows/reusable-terraform-apply.yaml@main
+    with:
+      region: us-west-2
+      env: test
+  slackNotify:
+    needs: testTerraformApply
+    uses: FractionalDev/jump-infra/.github/workflows/reusable-slack.yaml@main
+    with:
+      env: test
+      channel: infra-notifications
+      eventType: Apply
+      status: ${{ needs.testTerraformApply.outputs.status }}
