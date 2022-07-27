@@ -1,10 +1,22 @@
 name: Deploy To Test Environment
 on:
-  push:
-    branches:
-      - test
+  issue_comment:
+    types: [created]
 jobs:
+  trigger:
+    if: ${{ github.event.issue.pull_request }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: khan/pull-request-comment-trigger@v1.1.0
+        id: check
+        with:
+          trigger: '@apply'
+          reaction: rocket
+        env:
+          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
   testTerraformApply:
+    needs: trigger
+    if: needs.check.outputs.triggered == 'true'
     uses: FractionalDev/jump-infra/.github/workflows/reusable-terraform-apply.yaml@main
     with:
       region: us-west-2
