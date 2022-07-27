@@ -14,8 +14,8 @@ module "api" {
   container_image              = module.api_ecr.aws_ecr_repository_url
   container_env_vars           = local.api_env_vars
   container_port               = local.api_container_port
-  container_cpu                = 256
-  container_memory             = 512
+  container_cpu                = 512
+  container_memory             = 1024
   container_secrets            = module.api_secrets.secrets
   ecs_service_security_groups  = [aws_security_group.api_ecs_tasks.id]
   iam_policy_encrypt_logs_json = data.aws_iam_policy_document.ecs_task_encrypt_logs.json

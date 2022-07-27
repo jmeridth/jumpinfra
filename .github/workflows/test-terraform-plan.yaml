@@ -1,0 +1,10 @@
+name: Terraform Plan For Test Environment
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+jobs:
+  testTerraformPlan:
+    uses: FractionalDev/jump-infra/.github/workflows/reusable-terraform-plan.yaml@main
+    with:
+      region: us-west-2
+      env: test
