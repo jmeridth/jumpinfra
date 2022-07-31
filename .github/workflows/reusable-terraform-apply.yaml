@@ -50,7 +50,7 @@ jobs:
           export TF_CLI_ARGS_init=-backend-config=${{ inputs.env }}.tfbackend
           export TF_VAR_region=${{ inputs.region }}
           export TF_VAR_environment=${{ inputs.env }}
-          terraform init --var-file="secrets.${{ inputs.env }}.tfvars.json" --var-file="envvars.${{ input.env }}.tfvars.json"
+          terraform init --var-file="secrets.${{ inputs.env }}.tfvars.json" --var-file="envvars.${{ inputs.env }}.tfvars.json"
         working-directory: terraform
       - name: Terraform Validate
         id: validate
@@ -61,5 +61,5 @@ jobs:
           export TF_CLI_ARGS_init=-backend-config=${{ inputs.env }}.tfbackend
           export TF_VAR_region=${{ inputs.region }}
           export TF_VAR_environment=${{ inputs.env }}
-          terraform apply -auto-approve --var-file="secrets.${{ inputs.env }}.tfvars.json" --var-file="envvars.${{ input.env }}.tfvars.json"
+          terraform apply -auto-approve --var-file="secrets.${{ inputs.env }}.tfvars.json" --var-file="envvars.${{ inputs.env }}.tfvars.json"
         working-directory: terraform
