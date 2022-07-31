@@ -27,7 +27,7 @@ keys: ## Validate secret keys list matches keys in sensitive map
 	@python3 ../scripts/check_secrets.py ${ENV}
 
 .PHONY : check
-check: lint validate ## Run lint and validate
+check: lint validate keys ## Run some checks
 
 .PHONY : show
 show: ## Show Terraform
