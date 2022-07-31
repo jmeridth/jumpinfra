@@ -24,13 +24,7 @@ lint: ## Run tflint
 
 .PHONY : keys
 keys: ## Validate secret keys list matches keys in sensitive map
-	@for app_name in api admin web; do \
-		secret_keys="_secret_keys" && \
-		app_secret_keys=$$app_name$$secret_keys && \
-		secrets="_secrets" && \
-		app_secrets=$$app_name$$secrets && \
-		cat secrets.${ENV}.tfvars.json | jq '.$$app_secret_keys - .$$app_secrets | keys | length == 0'; \
-	done
+	@python3 ../scripts/check_secrets.py ${ENV}
 
 .PHONY : check
 check: lint validate ## Run lint and validate

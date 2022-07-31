@@ -24,6 +24,10 @@ jobs:
       - run: echo ${{ secrets[format('{0}_SECRETS', inputs.env)] }} > ./${{ inputs.env }}.tmp
       - run: base64 -d -i ./${{ inputs.env }}.tmp -o ./terraform/secrets.${{ inputs.env }}.tfvars.json
       - run: rm ./${{ inputs.env }}.tmp
+      - uses: actions/setup-python@v4
+      - name: Check secrets keys
+        id: check_secrets
+        run: python scripts/check_secrets.py ${{ inputs.env }}
       - uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: 1.2.2

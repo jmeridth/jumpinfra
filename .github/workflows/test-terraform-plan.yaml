@@ -1,9 +1,22 @@
 name: Terraform Plan For Test Environment
 on:
-  pull_request:
-    types: [opened, reopened, synchronize]
+  issue_comment:
+    types: [created]
 jobs:
+  trigger:
+    if: ${{ github.event.issue.pull_request }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: khan/pull-request-comment-trigger@v1.1.0
+        id: check
+        with:
+          trigger: '@plan'
+          reaction: rocket
+        env:
+          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
   testTerraformPlan:
+    needs: trigger
+    if: needs.check.outputs.triggered == 'true'
     uses: FractionalDev/jump-infra/.github/workflows/reusable-terraform-plan.yaml@main
     with:
       region: us-west-2
