@@ -16,7 +16,7 @@ jobs:
           GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
   testTerraformPlan:
     needs: trigger
-    if: needs.check.outputs.triggered == 'true'
+    if: needs.trigger.steps.check.outputs.triggered == 'true'
     uses: FractionalDev/jump-infra/.github/workflows/reusable-terraform-plan.yaml@main
     with:
       region: us-west-2
