@@ -104,7 +104,7 @@ jobs:
             <details><summary>Show Plan</summary>
 
             ```
-            ${{ process.env.PLAN }}
+            ${{ env.PLAN }}
             ```
 
             </details>
