@@ -91,7 +91,6 @@ jobs:
           SLACK_COLOR: ${{ job.status }}
           SLACK_MESSAGE: |
             Terraform Apply ${{ job.status }}
-            Details: https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}
-          SLACK_TITLE: "Infra Terraform Apply: ${{ steps.vars.outputs.env }} environment"
+          SLACK_TITLE: "Terraform Apply: ${{ steps.vars.outputs.env }} environment"
           SLACK_WEBHOOK: ${{ secrets.SLACK_INFRA_WEBHOOK_URL }}
           SLACK_FOOTER: "Powered by GitHub Actions and Terraform"
