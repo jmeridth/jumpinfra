@@ -1,0 +1,20 @@
+name: help-command
+on:
+  repository_dispatch:
+    types: [help-command]
+jobs:
+  help:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Help
+        uses: peter-evans/create-or-update-comment@v2
+        with:
+          token: ${{ secrets.SLASH_COMMANDS_PAT }}
+          repository: ${{ github.event.client_payload.github.payload.repository.full_name }}
+          comment-id: ${{ github.event.client_payload.github.payload.comment.id }}
+          body: |
+            > Command | Description
+            > --- | ---
+            > /plan env=[test|staging] | Run Terraform Plan on specific environment
+            > /apply env=[test|staging] | Run Terraform Apply on specific environment
+          reactions: eyes

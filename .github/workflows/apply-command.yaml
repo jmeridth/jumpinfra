@@ -1,0 +1,89 @@
+name: apply-command
+on:
+  repository_dispatch:
+    types: [apply-command]
+env:
+  REGION: us-west-2
+jobs:
+  terraformApply:
+    name: Terraform Apply
+    runs-on: ubuntu-latest
+    outputs:
+      status: ${{ job.status }}
+    steps:
+      - name: Get the environment name
+        id: vars
+        run: |
+          env=${{ github.event.client_payload.slash_command.args.named.env }}
+          if [[ -z "$env" ]]; then exit 1; fi
+          echo ::set-output name=env::$env
+      - name: Missing environment name notification
+        if: steps.vars.outcome == 'failure'
+        uses: peter-evans/create-or-update-comment@v2
+        with:
+          token: ${{ secrets.SLASH_COMMANDS_PAT }}
+          repository: ${{ github.event.client_payload.github.payload.repository.full_name }}
+          comment-id: ${{ github.event.client_payload.github.payload.comment.id }}
+          body: |
+            > Missing the `env` argument for the `/apply` command
+            > --- | ---
+            > Example: /apply env=[test|staging]
+          reactions: '-1'
+      - name: Missing environment name
+        if: steps.vars.outcome == 'failure'
+        run: exit 1
+      - uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.SLASH_COMMANDS_PAT }}
+      - name: Configure AWS credentials
+        id: aws-creds
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_TERRAFORM_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_TERRAFORM_SECRET_ACCESS_KEY }}
+          aws-region: $REGION
+      - run: echo ${{ secrets[format('{0}_SECRETS', steps.vars.outputs.env)] }} > ./${{ steps.vars.outputs.env }}.tmp
+      - run: base64 -d -i ./${{ steps.vars.outputs.env }}.tmp -o ./terraform/secrets.${{ steps.vars.outputs.env }}.tfvars.json
+      - run: rm ./${{ steps.vars.outputs.env }}.tmp
+      - name: Check secrets keys
+        id: check_secrets
+        run: python scripts/check_secrets.py ${{ steps.vars.outputs.env }}
+      - uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.2.2
+      - name: Terraform fmt
+        id: fmt
+        run: terraform fmt -check
+        continue-on-error: true
+        working-directory: terraform
+      - name: Terraform Init
+        id: init
+        run: |
+          export TF_CLI_ARGS_init=-backend-config=${{ steps.vars.outputs.env }}.tfbackend
+          export TF_VAR_region=$REGION
+          export TF_VAR_environment=${{ steps.vars.outputs.env }}
+          terraform init --var-file="secrets.${{ steps.vars.outputs.env }}.tfvars.json" --var-file="envvars.${{ steps.vars.outputs.env }}.tfvars.json"
+        working-directory: terraform
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate -no-color
+        working-directory: terraform
+      - name: Terraform Apply
+        run: |
+          export TF_CLI_ARGS_init=-backend-config=${{ steps.vars.outputs.env }}.tfbackend
+          export TF_VAR_region=$REGION
+          export TF_VAR_environment=${{ steps.vars.outputs.env }}
+          terraform apply -auto-approve --var-file="secrets.${{ steps.vars.outputs.env }}.tfvars.json" --var-file="envvars.${{ steps.vars.outputs.env }}.tfvars.json"
+        working-directory: terraform
+      - name: Slack Notification
+        if: ${{ always() }}
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_CHANNEL: infra-notifications
+          SLACK_COLOR: ${{ job.status }}
+          SLACK_MESSAGE: |
+            Terraform Apply ${{ job.status }}
+            Details: https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}
+          SLACK_TITLE: "Infra Terraform Apply: ${{ steps.vars.outputs.env }} environment"
+          SLACK_WEBHOOK: ${{ secrets.SLACK_INFRA_WEBHOOK_URL }}
+          SLACK_FOOTER: "Powered by GitHub Actions and Terraform"
