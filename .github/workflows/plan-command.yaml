@@ -15,6 +15,7 @@ jobs:
           env=${{ github.event.client_payload.slash_command.args.named.env }}
           if [[ -z "$env" ]]; then exit 1; fi
           echo ::set-output name=env::$env
+        continue-on-error: true
       - name: Missing environment name notification
         if: steps.vars.outcome == 'failure'
         uses: peter-evans/create-or-update-comment@v2
