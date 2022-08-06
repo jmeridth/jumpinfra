@@ -17,4 +17,4 @@ jobs:
             > --- | ---
             > /plan env=[test/staging] | Run Terraform Plan on specific environment
             > /apply env=[test/staging] | Run Terraform Apply on specific environment
-          reactions: eyes
+          reactions: heart
