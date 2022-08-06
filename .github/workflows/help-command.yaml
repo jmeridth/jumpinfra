@@ -15,6 +15,6 @@ jobs:
           body: |
             > Command | Description
             > --- | ---
-            > /plan env=[test|staging] | Run Terraform Plan on specific environment
-            > /apply env=[test|staging] | Run Terraform Apply on specific environment
+            > /plan env=[test/staging] | Run Terraform Plan on specific environment
+            > /apply env=[test/staging] | Run Terraform Apply on specific environment
           reactions: eyes
