@@ -1,33 +1,52 @@
-name: Terraform Plan
+name: plan-command
 on:
-  workflow_call:
-    inputs:
-      env:
-        required: true
-        type: string
-      region:
-        required: true
-        type: string
+  repository_dispatch:
+    types: [plan-command]
+env:
+  REGION: us-west-2
 jobs:
   terraformPlan:
     name: Terraform Plan
     runs-on: ubuntu-latest
     steps:
+      - name: Get the environment name
+        id: vars
+        run: |
+          env=${{ github.event.client_payload.slash_command.args.named.env }}
+          if [[ -z "$env" ]]; then exit 1; fi
+          echo ::set-output name=env::$env
+      - name: Missing environment name notification
+        if: steps.vars.outcome == 'failure'
+        uses: peter-evans/create-or-update-comment@v2
+        with:
+          token: ${{ secrets.SLASH_COMMANDS_PAT }}
+          repository: ${{ github.event.client_payload.github.payload.repository.full_name }}
+          comment-id: ${{ github.event.client_payload.github.payload.comment.id }}
+          body: |
+            > Missing the `env` argument for the `/plan` command
+            > --- | ---
+            > Example: /plan env=[test|staging]
+          reactions: '-1'
+      - name: Missing environment name
+        if: steps.vars.outcome == 'failure'
+        run: exit 1
       - uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.SLASH_COMMANDS_PAT }}
       - name: Configure AWS credentials
         id: aws-creds
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_TERRAFORM_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_TERRAFORM_SECRET_ACCESS_KEY }}
-          aws-region: ${{ inputs.region }}
-      - run: echo ${{ secrets[format('{0}_SECRETS', inputs.env)] }} > ./${{ inputs.env }}.tmp
-      - run: base64 -d -i ./${{ inputs.env }}.tmp -o ./terraform/secrets.${{ inputs.env }}.tfvars.json
-      - run: rm ./${{ inputs.env }}.tmp
+          aws-region: $REGION
+      - run: echo ${{ secrets[format('{0}_SECRETS', steps.vars.outputs.env)] }} > ./${{ steps.vars.outputs.env }}.tmp
+      - run: base64 -d -i ./${{ steps.vars.outputs.env }}.tmp -o ./terraform/secrets.${{ steps.vars.outputs.env }}.tfvars.json
+      - run: rm ./${{ steps.vars.outputs.env }}.tmp
       - uses: actions/setup-python@v4
       - name: Check secrets keys
         id: check_secrets
-        run: python scripts/check_secrets.py ${{ inputs.env }}
+        run: python scripts/check_secrets.py ${{ steps.vars.outputs.env }}
       - uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: 1.2.2
@@ -39,8 +58,8 @@ jobs:
       - name: Terraform Init
         id: init
         run: |
-          export TF_CLI_ARGS_init=-backend-config=${{ inputs.env }}.tfbackend
-          terraform init --var-file="secrets.${{ inputs.env }}.tfvars.json" --var-file="envvars.${{ inputs.env }}.tfvars.json"
+          export TF_CLI_ARGS_init=-backend-config=${{ steps.vars.outputs.env }}.tfbackend
+          terraform init --var-file="secrets.${{ steps.vars.outputs.env }}.tfvars.json" --var-file="envvars.${{ steps.vars.outputs.env }}.tfvars.json"
         working-directory: terraform
       - name: Terraform Validate
         id: validate
@@ -52,8 +71,8 @@ jobs:
       - name: Terraform Plan
         id: plan
         run: |
-          export TF_CLI_ARGS_init=-backend-config=${{ inputs.env }}.tfbackend
-          terraform plan -no-color --var-file="secrets.${{ inputs.env }}.tfvars.json" --var-file="envvars.${{ inputs.env }}.tfvars.json"
+          export TF_CLI_ARGS_init=-backend-config=${{ steps.vars.outputs.env }}.tfbackend
+          terraform plan -no-color --var-file="secrets.${{ steps.vars.outputs.env }}.tfvars.json" --var-file="envvars.${{ steps.vars.outputs.env }}.tfvars.json"
         continue-on-error: true
         working-directory: terraform
       - name: Terraform Plan Output
@@ -61,7 +80,7 @@ jobs:
         env:
           PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.SLASH_COMMANDS_PAT }}
           script: |
             const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
             #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
@@ -92,9 +111,6 @@ jobs:
               repo: context.repo.repo,
               body: output
             })
-            - name: Terraform Plan Status
-              if: steps.plan.outcome == 'failure'
-              run: exit 1
       - name: Terraform Plan Status
         if: steps.plan.outcome == 'failure'
         run: exit 1
