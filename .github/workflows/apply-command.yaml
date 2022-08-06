@@ -27,7 +27,6 @@ jobs:
           comment-id: ${{ github.event.client_payload.github.payload.comment.id }}
           body: |
             > Missing the `env` argument for the `/apply` command
-            > --- | ---
             > Example: /apply env=[test/staging]
           reactions: '-1'
       - name: Missing environment name
