@@ -41,7 +41,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_TERRAFORM_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_TERRAFORM_SECRET_ACCESS_KEY }}
-          aws-region: $REGION
+          aws-region: ${{ env.REGION }}
       - run: echo ${{ secrets[format('{0}_SECRETS', steps.vars.outputs.env)] }} > ./${{ steps.vars.outputs.env }}.tmp
       - run: base64 -d -i ./${{ steps.vars.outputs.env }}.tmp -o ./terraform/secrets.${{ steps.vars.outputs.env }}.tfvars.json
       - run: rm ./${{ steps.vars.outputs.env }}.tmp
@@ -60,7 +60,7 @@ jobs:
         id: init
         run: |
           export TF_CLI_ARGS_init=-backend-config=${{ steps.vars.outputs.env }}.tfbackend
-          export TF_VAR_region=$REGION
+          export TF_VAR_region=${{ env.REGION }}
           export TF_VAR_environment=${{ steps.vars.outputs.env }}
           terraform init --var-file="secrets.${{ steps.vars.outputs.env }}.tfvars.json" --var-file="envvars.${{ steps.vars.outputs.env }}.tfvars.json"
         working-directory: terraform
@@ -71,7 +71,7 @@ jobs:
       - name: Terraform Apply
         run: |
           export TF_CLI_ARGS_init=-backend-config=${{ steps.vars.outputs.env }}.tfbackend
-          export TF_VAR_region=$REGION
+          export TF_VAR_region=${{ env.REGION }}
           export TF_VAR_environment=${{ steps.vars.outputs.env }}
           terraform apply -auto-approve --var-file="secrets.${{ steps.vars.outputs.env }}.tfvars.json" --var-file="envvars.${{ steps.vars.outputs.env }}.tfvars.json"
         working-directory: terraform

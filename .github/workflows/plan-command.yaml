@@ -39,7 +39,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_TERRAFORM_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_TERRAFORM_SECRET_ACCESS_KEY }}
-          aws-region: $REGION
+          aws-region: ${{ env.REGION }}
       - run: echo ${{ secrets[format('{0}_SECRETS', steps.vars.outputs.env)] }} > ./${{ steps.vars.outputs.env }}.tmp
       - run: base64 -d -i ./${{ steps.vars.outputs.env }}.tmp -o ./terraform/secrets.${{ steps.vars.outputs.env }}.tfvars.json
       - run: rm ./${{ steps.vars.outputs.env }}.tmp
