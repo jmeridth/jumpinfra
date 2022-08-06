@@ -134,7 +134,7 @@ data "aws_iam_policy_document" "lb_logs" {
     ]
 
     principals {
-      identifiers = ["${data.aws_elb_service_account.main.arn}"]
+      identifiers = [data.aws_elb_service_account.main.arn]
       type        = "AWS"
     }
   }
