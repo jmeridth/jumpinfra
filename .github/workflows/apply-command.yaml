@@ -76,12 +76,41 @@ jobs:
         run: make lint
         working-directory: terraform
       - name: Terraform Apply
+        id: apply
         run: |
           export TF_CLI_ARGS_init=-backend-config=${{ steps.vars.outputs.env }}.tfbackend
           export TF_VAR_region=${{ env.REGION }}
           export TF_VAR_environment=${{ steps.vars.outputs.env }}
           terraform apply -auto-approve --var-file="secrets.${{ steps.vars.outputs.env }}.tfvars.json" --var-file="envvars.${{ steps.vars.outputs.env }}.tfvars.json"
         working-directory: terraform
+      - name: Terraform Apply Output
+        uses: peter-evans/create-or-update-comment@v2
+        env:
+          APPLY: "terraform\n${{ steps.apply.outputs.stdout }}"
+        with:
+          token: ${{ secrets.SLASH_COMMANDS_PAT }}
+          issue-number: ${{ github.event.client_payload.github.payload.issue.number }}
+          body: |
+            #### Terraform Format and Style 🖌 `${{ steps.fmt.outcome }}`
+            #### Terraform Initialization ⚙️ `${{ steps.init.outcome }}`
+            #### Terraform Validation 🤖 `${{ steps.validate.outcome }}`
+            <details><summary>Validation Output</summary>
+
+            ```
+            ${{ steps.validate.outputs.stdout }}
+            ```
+
+            </details>
+
+            #### Terraform Apply 📖 `${{ steps.apply.outcome }}`
+
+            <details><summary>Show Apply</summary>
+
+            ```
+            ${{ env.APPLY }}
+            ```
+
+            </details>
       - name: Slack Notification
         if: ${{ always() }}
         uses: rtCamp/action-slack-notify@v2
@@ -93,3 +122,6 @@ jobs:
           SLACK_TITLE: "Terraform Apply: ${{ steps.vars.outputs.env }} environment"
           SLACK_WEBHOOK: ${{ secrets.SLACK_INFRA_WEBHOOK_URL }}
           SLACK_FOOTER: "Powered by GitHub Actions and Terraform"
+      - name: Terraform Apply Status
+        if: steps.apply.outcome == 'failure'
+        run: exit 1
