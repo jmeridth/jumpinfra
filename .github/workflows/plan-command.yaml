@@ -81,13 +81,13 @@ jobs:
         continue-on-error: true
         working-directory: terraform
       - name: Terraform Plan Output
-        uses: actions/github-script@v6
+        uses: peter-evans/create-or-update-comment@v2
         env:
           PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
         with:
-          github-token: ${{ secrets.SLASH_COMMANDS_PAT }}
-          script: |
-            const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
+          token: ${{ secrets.SLASH_COMMANDS_PAT }}
+          body: |
+            #### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
             #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
             #### Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
             <details><summary>Validation Output</summary>
@@ -109,13 +109,6 @@ jobs:
             </details>
 
             *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Working Directory: \`${{ env.tf_actions_working_dir }}\`, Workflow: \`${{ github.workflow }}\`*`;
-
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: output
-            })
       - name: Terraform Plan Status
         if: steps.plan.outcome == 'failure'
         run: exit 1
