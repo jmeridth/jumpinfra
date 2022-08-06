@@ -25,7 +25,7 @@ jobs:
           body: |
             > Missing the `env` argument for the `/plan` command
             > --- | ---
-            > Example: /plan env=[test|staging]
+            > Example: /plan env=[test/staging]
           reactions: '-1'
       - name: Missing environment name
         if: steps.vars.outcome == 'failure'
