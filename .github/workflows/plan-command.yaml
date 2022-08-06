@@ -86,6 +86,7 @@ jobs:
           PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
         with:
           token: ${{ secrets.SLASH_COMMANDS_PAT }}
+          issue-number: ${{ github.event.client_payload.github.payload.issue.number }}
           body: |
             #### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
             #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
