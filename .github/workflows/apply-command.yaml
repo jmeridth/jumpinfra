@@ -69,6 +69,13 @@ jobs:
         id: validate
         run: terraform validate -no-color
         working-directory: terraform
+      - uses: terraform-linters/setup-tflint@v2
+        name: Setup TFLint
+        with:
+          tflint_version: v0.39.1
+      - name: TFLint
+        run: make lint
+        working-directory: terraform
       - name: Terraform Apply
         run: |
           export TF_CLI_ARGS_init=-backend-config=${{ steps.vars.outputs.env }}.tfbackend
