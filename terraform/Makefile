@@ -1,5 +1,16 @@
 ENV ?= test
 
+define ecs_ssh
+	aws --profile jump${ENV} \
+		ecs execute-command \
+		--region us-west-2 \
+		--cluster jumpco-cluster-${ENV} \
+		--task $(shell aws --profile jump${ENV} ecs list-tasks --cluster jumpco-cluster-${ENV} --service-name $(1)-${ENV} | jq '.taskArns[0] | split("/") | .[-1]') \
+		--container $(1)-container-${ENV} \
+		--command "/bin/bash" \
+		--interactive
+endef
+
 .PHONY : help
 help: # Display help
 	@awk -F ':|##' \
@@ -62,35 +73,14 @@ apply: ## Run Terraform Apply
 	terraform apply -auto-approve -var-file="secrets.${ENV}.tfvars.json" \
 		-var-file="envvars.${ENV}.tfvars.json"
 
-#.PHONY : api
-#api: ## SSH onto ECS API instance
-#	aws --profile jump${ENV} \
-#	ecs execute-command \
-#  --region us-west-2 \
-#  --cluster jumpco-cluster-${ENV} \
-#  --task $(shall aws --profile jump${ENV} ecs list-tasks) \
-#  --container api-container-${ENV} \
-#  --command "ls" \
-#  -interactive
-#
-#.PHONY : admin
-#admin: ## SSH onto ECS Admin instance
-#	aws --profile jump${ENV} \
-#	ecs execute-command \
-#  --region us-west-2 \
-#  --cluster jumpco-cluster-${ENV} \
-#  --task $(shall aws --profile jump${ENV} ecs list-tasks) \
-#  --container admin-container-${ENV} \
-#  --command "ls" \
-#  -interactive
-#
-#.PHONY : web
-#web: ## SSH onto ECS Web instance
-#	aws --profile jump${ENV} \
-#	ecs execute-command \
-#  --region us-west-2 \
-#  --cluster jumpco-cluster-${ENV} \
-#  --task $(shall aws --profile jump${ENV} ecs list-tasks) \
-#  --container web-container-${ENV} \
-#  --command "ls" \
-#  -interactive
+.PHONY : api
+api: ## SSH onto ECS API instance
+	$(call ecs_ssh,api)
+
+.PHONY : admin
+admin: ## SSH onto ECS Admin instance
+	$(call ecs_ssh,admin)
+
+.PHONY : web
+web: ## SSH onto ECS Web instance
+	$(call ecs_ssh,web)
