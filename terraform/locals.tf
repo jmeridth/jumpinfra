@@ -20,8 +20,13 @@ locals {
     })
   )
   availability_zones = ["${var.aws_region}a", "${var.aws_region}b"]
-  non_web_cert_arns  = [aws_acm_certificate.api.arn, aws_acm_certificate.admin.arn]
   db_name            = "${var.stack_name}${var.environment}"
+  non_web_cert_arns  = [aws_acm_certificate.api.arn, aws_acm_certificate.admin.arn]
+  user_data          = <<EOF
+#!/bin/bash
+echo ECS_CLUSTER=${aws_ecs_cluster.main.name} >> /etc/ecs/ecs.config
+echo ECS_ENGINE_TASK_CLEANUP_WAIT_DURATION=10m >> /etc/ecs/ecs.config
+EOF
   web_container_port = "3000"
   web_name           = "web"
 }
