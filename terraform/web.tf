@@ -8,7 +8,7 @@ module "web" {
   source                       = "./ecs_service"
   name                         = local.web_name
   environment                  = var.environment
-  ami                          = data.aws_ami.ubuntu.id
+  ami                          = data.aws_ami.ecs_optimized.id
   cluster_id                   = aws_ecs_cluster.main.id
   cluster_name                 = aws_ecs_cluster.main.name
   aws_lb_target_group_arn      = aws_lb_target_group.web_target_group.arn
@@ -27,7 +27,6 @@ module "web" {
   region                       = var.aws_region
   service_desired_count        = 2
   subnets                      = aws_subnet.private
-  user_data                    = local.user_data
 }
 
 resource "aws_security_group" "web_ecs_tasks" {

@@ -110,11 +110,6 @@ variable "instance_type" {
   default     = "t3.medium"
 }
 
-variable "user_data" {
-  type        = string
-  description = "User Data to inject into EC2 instances"
-}
-
 locals {
   container_env_vars = [for k, v in var.container_env_vars : {
     name  = k

@@ -176,7 +176,10 @@ resource "aws_launch_configuration" "ecs_launch_config" {
   image_id             = var.ami
   iam_instance_profile = var.instance_profile
   security_groups      = var.ecs_service_security_groups
-  user_data            = var.user_data
+  user_data            = <<EOF
+#!/bin/bash
+echo ECS_CLUSTER=${var.cluster_name} >> /etc/ecs/ecs.config
+EOF
   instance_type        = var.instance_type
 
   lifecycle {
