@@ -33,6 +33,7 @@ jobs:
       - uses: actions/checkout@v2
         with:
           token: ${{ secrets.SLASH_COMMANDS_PAT }}
+          ref: ${{ github.ref }}
       - name: Configure AWS credentials
         id: aws-creds
         uses: aws-actions/configure-aws-credentials@v1
