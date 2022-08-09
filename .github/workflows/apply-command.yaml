@@ -32,10 +32,10 @@ jobs:
       - name: Missing environment name
         if: steps.vars.outcome == 'failure'
         run: exit 1
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           token: ${{ secrets.SLASH_COMMANDS_PAT }}
-          ref: ${{ github.ref }}
+          ref: ${{ github.event.client_payload.pull_request.head.ref }}
       - name: Configure AWS credentials
         id: aws-creds
         uses: aws-actions/configure-aws-credentials@v1
