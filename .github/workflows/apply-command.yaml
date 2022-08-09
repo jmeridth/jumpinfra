@@ -61,9 +61,9 @@ jobs:
         id: init
         run: |
           terraform init
+            -backend-config="${{ steps.vars.outputs.env }}.tfbackend"
             -var-file="secrets.${{ steps.vars.outputs.env }}.tfvars.json"
             -var-file="envvars.${{ steps.vars.outputs.env }}.tfvars.json"
-            -backend-config=${{ steps.vars.outputs.env }}.tfbackend
         working-directory: terraform
       - name: Terraform Validate
         id: validate
