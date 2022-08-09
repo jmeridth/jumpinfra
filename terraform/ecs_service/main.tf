@@ -60,7 +60,7 @@ resource "aws_kms_alias" "ecs_service_key_alias" {
 resource "aws_ecs_task_definition" "main" {
   family                   = "${var.name}-task-${var.environment}"
   network_mode             = "awsvpc"
-  requires_compatibilities = ["FARGATE"]
+  requires_compatibilities = ["EC2"]
   execution_role_arn       = var.ecs_task_execution_role_arn
   task_role_arn            = var.ecs_task_role_arn
   memory                   = var.container_memory
@@ -105,7 +105,7 @@ resource "aws_ecs_service" "main" {
   deployment_minimum_healthy_percent = 50
   deployment_maximum_percent         = 200
   health_check_grace_period_seconds  = 60
-  launch_type                        = "FARGATE"
+  launch_type                        = "EC2"
   scheduling_strategy                = "REPLICA"
 
   network_configuration {
@@ -168,5 +168,34 @@ resource "aws_appautoscaling_policy" "ecs_policy_cpu" {
     target_value       = 60
     scale_in_cooldown  = 300
     scale_out_cooldown = 300
+  }
+}
+
+resource "aws_launch_configuration" "ecs_launch_config" {
+  name_prefix          = "${var.name}-${var.environment}-"
+  image_id             = var.ami
+  iam_instance_profile = var.instance_profile
+  security_groups      = var.ecs_service_security_groups
+  user_data            = var.user_data
+  instance_type        = var.instance_type
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_autoscaling_group" "ecs_asg" {
+  name                 = "${var.name}-${var.environment}"
+  vpc_zone_identifier  = var.subnets.*.id
+  launch_configuration = aws_launch_configuration.ecs_launch_config.name
+
+  desired_capacity          = 1
+  min_size                  = 1
+  max_size                  = 3
+  health_check_grace_period = 300
+  health_check_type         = "EC2"
+
+  lifecycle {
+    create_before_destroy = true
   }
 }

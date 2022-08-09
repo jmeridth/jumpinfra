@@ -94,6 +94,27 @@ variable "container_secrets" {
   sensitive   = true
 }
 
+variable "ami" {
+  type        = string
+  description = "AMI name"
+}
+
+variable "instance_profile" {
+  type        = string
+  description = "IAM profile to use for EC2 instance"
+}
+
+variable "instance_type" {
+  type        = string
+  description = "EC2 instance type"
+  default     = "t3.medium"
+}
+
+variable "user_data" {
+  type        = string
+  description = "User Data to inject into EC2 instances"
+}
+
 locals {
   container_env_vars = [for k, v in var.container_env_vars : {
     name  = k
