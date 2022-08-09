@@ -59,8 +59,10 @@ jobs:
       - name: Terraform Init
         id: init
         run: |
-          export TF_CLI_ARGS_init=-backend-config=${{ steps.vars.outputs.env }}.tfbackend
-          terraform init --var-file="secrets.${{ steps.vars.outputs.env }}.tfvars.json" --var-file="envvars.${{ steps.vars.outputs.env }}.tfvars.json"
+          terraform init
+            -var-file="secrets.${{ steps.vars.outputs.env }}.tfvars.json"
+            -var-file="envvars.${{ steps.vars.outputs.env }}.tfvars.json"
+            -backend-config=${{ steps.vars.outputs.env }}.tfbackend
         working-directory: terraform
       - name: Terraform Validate
         id: validate
@@ -76,8 +78,10 @@ jobs:
       - name: Terraform Plan
         id: plan
         run: |
-          export TF_CLI_ARGS_init=-backend-config=${{ steps.vars.outputs.env }}.tfbackend
-          terraform plan -no-color --var-file="secrets.${{ steps.vars.outputs.env }}.tfvars.json" --var-file="envvars.${{ steps.vars.outputs.env }}.tfvars.json"
+          terraform plan
+            -no-color
+            -var-file="secrets.${{ steps.vars.outputs.env }}.tfvars.json"
+            -var-file="envvars.${{ steps.vars.outputs.env }}.tfvars.json"
         continue-on-error: true
         working-directory: terraform
       - name: Terraform Plan Output
