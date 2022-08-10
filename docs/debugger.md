@@ -7,7 +7,9 @@ cd terraform
 make debugger
 
 # on the container
+env | grep $TYPEORM_PASSWORD # will show you the password
 psql -h $TYPEORM_HOST -d $TYPEORM_DATABASE -p $TYPEORM_PORT -U $TYPEORM_USERNAME
+# password prompt
 ```
 
 ### Details
