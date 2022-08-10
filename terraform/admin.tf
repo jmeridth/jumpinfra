@@ -64,7 +64,7 @@ resource "aws_lb_target_group" "admin_target_group" {
   target_type = "ip"
 
   health_check {
-    healthy_threshold   = "3"
+    healthy_threshold   = "5"
     interval            = "180"
     matcher             = "200"
     path                = "/health"
