@@ -84,3 +84,7 @@ admin: ## SSH onto ECS Admin instance
 .PHONY : web
 web: ## SSH onto ECS Web instance
 	$(call ecs_ssh,web)
+
+.PHONY : debugger
+debugger: ## SSH onto ECS Debugger instance
+	$(call ecs_ssh,debugger)

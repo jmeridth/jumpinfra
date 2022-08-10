@@ -1,0 +1,6 @@
+FROM ubuntu:20.04
+RUN apt update && \
+  apt install -y \
+  git make curl build-essential postgresql-client-12
+
+ENTRYPOINT ["tail", "-f", "/dev/null"]

@@ -76,6 +76,7 @@ variable "container_image" {
 variable "aws_lb_target_group_arn" {
   type        = string
   description = "ARN of the load balancer target group"
+  default     = ""
 }
 
 variable "service_desired_count" {

@@ -21,6 +21,7 @@ locals {
   )
   availability_zones = ["${var.aws_region}a", "${var.aws_region}b"]
   db_name            = "${var.stack_name}${var.environment}"
+  debugger_name      = "debugger"
   non_web_cert_arns  = [aws_acm_certificate.api.arn, aws_acm_certificate.admin.arn]
   web_container_port = "3000"
   web_name           = "web"

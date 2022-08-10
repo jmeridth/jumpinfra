@@ -104,7 +104,7 @@ resource "aws_ecs_service" "main" {
   desired_count                      = var.service_desired_count
   deployment_minimum_healthy_percent = 50
   deployment_maximum_percent         = 200
-  health_check_grace_period_seconds  = 60
+  health_check_grace_period_seconds  = var.aws_lb_target_group_arn != "" ? 60 : null
   launch_type                        = "EC2"
   scheduling_strategy                = "REPLICA"
 
@@ -114,10 +114,13 @@ resource "aws_ecs_service" "main" {
     assign_public_ip = false
   }
 
-  load_balancer {
-    target_group_arn = var.aws_lb_target_group_arn
-    container_name   = local.container_name
-    container_port   = var.container_port
+  dynamic "load_balancer" {
+    for_each = var.aws_lb_target_group_arn != "" ? [1] : []
+    content {
+      target_group_arn = var.aws_lb_target_group_arn
+      container_name   = local.container_name
+      container_port   = var.container_port
+    }
   }
 
   # desired_count is ignored as it can change due to autoscaling policy
