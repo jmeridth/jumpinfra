@@ -12,9 +12,9 @@ psql -h $TYPEORM_HOST -d $TYPEORM_DATABASE -p $TYPEORM_PORT -U $TYPEORM_USERNAME
 
 ### Details
 
-In the `docker` folder is a [Dockerfile](../docker/Dockerfile) and a [Makefile](..docker/Makefile).
+In the `docker` folder is a `Dockerfile.debugger` and a `Makefile`.
 
-Please update the packages installed in the `Dockerfile` if you want other tools.
+Please update the packages installed in the `Dockerfile.debugger` if you want other tools.
 
 ```bash
 cd docker
