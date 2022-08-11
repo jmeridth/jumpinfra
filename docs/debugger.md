@@ -35,3 +35,7 @@ psql -h $TYPEORM_HOST -d $TYPEORM_DATABASE -p $TYPEORM_PORT -U $TYPEORM_USERNAME
 ```
 
 This will allow you to run commands against the database
+
+## Security
+
+This ECS Service is not accessible publicly.  It does not have a target group on the load balancer and so nothing can pass through to it.  It is _only_ accessible through the aws cli and people that have IAM accessibility.
