@@ -9,16 +9,14 @@ module "admin" {
   container_image              = module.api_ecr.aws_ecr_repository_url
   container_env_vars           = local.admin_env_vars
   container_port               = local.admin_container_port
-  container_cpu                = 256
-  container_memory             = 512
+  container_cpu                = 512
+  container_memory             = 1024
   container_secrets            = module.admin_secrets.secrets
   ecs_service_security_groups  = [aws_security_group.admin_ecs_tasks.id]
   ecs_task_execution_role_name = aws_iam_role.ecs_task_execution_role.name
   ecs_task_execution_role_arn  = aws_iam_role.ecs_task_execution_role.arn
   ecs_task_role_arn            = aws_iam_role.ecs_task_role.arn
-  iam_policy_encrypt_logs_json = data.aws_iam_policy_document.ecs_task_encrypt_logs.json
   instance_profile             = aws_iam_instance_profile.ecs_agent.name
-  region                       = var.aws_region
   service_desired_count        = 2
   subnets                      = aws_subnet.private
 }
@@ -45,6 +43,10 @@ resource "aws_security_group" "admin_ecs_tasks" {
 
   tags = {
     Name = "${local.admin_name}-sg-task-${var.environment}"
+  }
+
+  lifecycle {
+    create_before_destroy = true
   }
 }
 

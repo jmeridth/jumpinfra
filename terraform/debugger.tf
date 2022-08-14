@@ -1,12 +1,12 @@
 module "debugger_ecr" {
-  count       = var.environment == "test" ? 1 : 0
+  count       = var.environment != "production" ? 1 : 0
   source      = "./ecr"
   name        = local.debugger_name
   environment = var.environment
 }
 
 module "debugger" {
-  count                        = var.environment == "test" ? 1 : 0
+  count                        = var.environment != "production" ? 1 : 0
   source                       = "./ecs_service"
   name                         = local.debugger_name
   environment                  = var.environment
@@ -23,9 +23,7 @@ module "debugger" {
   ecs_task_execution_role_name = aws_iam_role.ecs_task_execution_role.name
   ecs_task_execution_role_arn  = aws_iam_role.ecs_task_execution_role.arn
   ecs_task_role_arn            = aws_iam_role.ecs_task_role.arn
-  iam_policy_encrypt_logs_json = data.aws_iam_policy_document.ecs_task_encrypt_logs.json
   instance_profile             = aws_iam_instance_profile.ecs_agent.name
-  region                       = var.aws_region
   service_desired_count        = 1
   subnets                      = aws_subnet.private
 }

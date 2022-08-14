@@ -19,9 +19,15 @@ locals {
       "TYPEORM_DATABASE" = "${var.stack_name}${var.environment}"
     })
   )
+  all_app_security_groups = [
+    aws_security_group.api_ecs_tasks.id,
+    aws_security_group.admin_ecs_tasks.id,
+    aws_security_group.web_ecs_tasks.id
+  ]
   availability_zones = ["${var.aws_region}a", "${var.aws_region}b"]
   db_name            = "${var.stack_name}${var.environment}"
   debugger_name      = "debugger"
+  logging_name       = "logging"
   non_web_cert_arns  = [aws_acm_certificate.api.arn, aws_acm_certificate.admin.arn]
   web_container_port = "3000"
   web_name           = "web"

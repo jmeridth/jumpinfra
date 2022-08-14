@@ -122,7 +122,7 @@ resource "aws_iam_policy" "dynamodb" {
   })
 }
 
-data "aws_iam_policy_document" "ecs_task_encrypt_logs" {
+data "aws_iam_policy_document" "ecs_task_encrypt" {
   statement {
     sid    = ""
     effect = "Allow"
