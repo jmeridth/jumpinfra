@@ -103,3 +103,21 @@ variable "instance_type" {
   description = "EC2 instance type"
   default     = "t3.medium"
 }
+
+variable "syslog_protocol" {
+  type        = string
+  description = "Syslog protocol"
+  default     = "tcp+tls"
+}
+
+variable "syslog_address" {
+  type        = string
+  description = "Syslog address"
+  default     = "logs3.papertrailapp.com"
+}
+
+variable "syslog_port" {
+  type        = number
+  description = "Syslog port"
+  default     = 37939
+}
