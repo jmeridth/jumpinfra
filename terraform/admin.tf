@@ -6,7 +6,7 @@ module "admin" {
   cluster_id                   = aws_ecs_cluster.main.id
   cluster_name                 = aws_ecs_cluster.main.name
   aws_lb_target_group_arn      = aws_lb_target_group.admin_target_group.arn
-  container_image              = module.api_ecr.aws_ecr_repository_url
+  container_image              = "${module.api_ecr.aws_ecr_repository_url}:latest"
   container_env_vars           = local.admin_env_vars
   container_port               = local.admin_container_port
   container_cpu                = 512

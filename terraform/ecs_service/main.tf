@@ -162,7 +162,7 @@ EOF
 
 resource "aws_autoscaling_group" "ecs_asg" {
   count                = var.logging ? 0 : 1
-  name                 = "${var.name}-${var.environment}"
+  name_prefix          = "${var.name}-${var.environment}-"
   vpc_zone_identifier  = var.subnets.*.id
   launch_configuration = aws_launch_configuration.ecs_launch_config[0].name
 

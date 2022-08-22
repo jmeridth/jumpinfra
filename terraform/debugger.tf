@@ -13,7 +13,7 @@ module "debugger" {
   ami                          = data.aws_ami.ecs_optimized.id
   cluster_id                   = aws_ecs_cluster.main.id
   cluster_name                 = aws_ecs_cluster.main.name
-  container_image              = module.debugger_ecr[count.index].aws_ecr_repository_url
+  container_image              = "${module.debugger_ecr[count.index].aws_ecr_repository_url}:latest"
   container_env_vars           = local.api_env_vars
   container_port               = local.api_container_port
   container_cpu                = 512

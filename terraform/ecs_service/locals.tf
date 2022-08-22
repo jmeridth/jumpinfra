@@ -1,7 +1,7 @@
 locals {
   app_container_definitions = [{
     name        = local.container_name
-    image       = "${var.container_image}:latest"
+    image       = "${var.container_image}"
     essential   = true
     environment = local.container_env_vars
     memory      = var.container_memory
@@ -26,7 +26,7 @@ locals {
   container_name = "${var.name}-container-${var.environment}"
   logging_container_definitions = [{
     name        = local.container_name
-    image       = "${var.container_image}:latest"
+    image       = "${var.container_image}"
     essential   = true
     environment = local.container_env_vars
     memory      = var.container_memory
