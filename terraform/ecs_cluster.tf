@@ -26,3 +26,8 @@ resource "aws_kms_alias" "ecs_cluster_key_alias" {
   name          = "alias/terraform-ecs-cluster-key-${var.environment}"
   target_key_id = aws_kms_key.ecs_cluster.key_id
 }
+
+resource "aws_ecs_account_setting_default" "vpc_trunking" {
+  name  = "awsvpcTrunking"
+  value = "enabled"
+}

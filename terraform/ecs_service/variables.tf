@@ -107,5 +107,5 @@ variable "instance_profile" {
 variable "instance_type" {
   type        = string
   description = "EC2 instance type"
-  default     = "t3.medium"
+  default     = "a1.large"
 }
