@@ -17,7 +17,7 @@ locals {
     logConfiguration = {
       logDriver = "syslog"
       options = {
-        syslog-address = "udp://logs3.papertrailapp.com:37939"
+        syslog-address = "tcp+tls://logs3.papertrailapp.com:37939"
         tag            = "${local.container_name}-{{.ID}}"
       }
     }
