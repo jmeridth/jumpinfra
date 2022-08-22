@@ -4,6 +4,7 @@ resource "aws_ecs_cluster" "main" {
   configuration {
     execute_command_configuration {
       kms_key_id = aws_kms_key.ecs_cluster.arn
+      logging    = "NONE"
     }
   }
   tags = {
