@@ -18,7 +18,7 @@ locals {
       logDriver = "syslog"
       options = {
         syslog-address = "udp://logs3.papertrailapp.com:37939"
-        tag            = local.container_name
+        tag            = "${local.container_name}-{{.ID}}"
       }
     }
     secrets = var.container_secrets
