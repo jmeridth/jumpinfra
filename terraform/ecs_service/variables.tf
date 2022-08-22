@@ -8,14 +8,10 @@ variable "environment" {
   description = "Environment"
 }
 
-variable "region" {
-  type        = string
-  description = "the AWS region in which resources are created"
-}
-
-variable "iam_policy_encrypt_logs_json" {
-  type        = string
-  description = "IAM Policy JSON for ECS Task ecryption with KMS key"
+variable "logging" {
+  type        = bool
+  description = "whether this service is for logging"
+  default     = false
 }
 
 variable "cluster_name" {
@@ -56,6 +52,7 @@ variable "ecs_service_security_groups" {
 variable "container_port" {
   type        = number
   description = "Port of container"
+  default     = null
 }
 
 variable "container_cpu" {
@@ -87,12 +84,14 @@ variable "service_desired_count" {
 variable "container_env_vars" {
   type        = map(any)
   description = "The container environmnent variables"
+  default     = {}
 }
 
 variable "container_secrets" {
   type        = list(any)
   description = "The container secret environmnent variables"
   sensitive   = true
+  default     = []
 }
 
 variable "ami" {
@@ -108,12 +107,5 @@ variable "instance_profile" {
 variable "instance_type" {
   type        = string
   description = "EC2 instance type"
-  default     = "t3.medium"
-}
-
-locals {
-  container_env_vars = [for k, v in var.container_env_vars : {
-    name  = k
-    value = v
-  }]
+  default     = "c5.large"
 }
