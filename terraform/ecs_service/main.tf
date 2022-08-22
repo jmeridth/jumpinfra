@@ -8,7 +8,6 @@ terraform {
 }
 
 resource "aws_iam_policy" "parameter_store" {
-  count       = var.logging ? 0 : 1
   name        = "${var.name}-task-policy-parameter-store"
   description = "Policy that allows access to the parameter store entries we created"
 
@@ -28,9 +27,8 @@ resource "aws_iam_policy" "parameter_store" {
 }
 
 resource "aws_iam_role_policy_attachment" "ecs_task_role_policy_attachment_for_secrets" {
-  count      = var.logging ? 0 : 1
   role       = var.ecs_task_execution_role_name
-  policy_arn = aws_iam_policy.parameter_store[0].arn
+  policy_arn = aws_iam_policy.parameter_store.arn
 }
 
 resource "aws_ecs_task_definition" "main" {
@@ -41,14 +39,7 @@ resource "aws_ecs_task_definition" "main" {
   task_role_arn            = var.ecs_task_role_arn
   memory                   = var.container_memory
   cpu                      = var.container_cpu
-  container_definitions    = var.logging ? jsonencode(local.logging_container_definitions) : jsonencode(local.app_container_definitions)
-  dynamic "volume" {
-    for_each = var.logging ? [1] : []
-    content {
-      name      = local.logging_volume_name
-      host_path = local.logging_path
-    }
-  }
+  container_definitions    = jsonencode(local.app_container_definitions)
 
   tags = {
     Name = "${var.name}-task-${var.environment}"
@@ -73,13 +64,6 @@ resource "aws_ecs_service" "main" {
     assign_public_ip = false
   }
 
-  dynamic "ordered_placement_strategy" {
-    for_each = var.logging ? [1] : []
-    content {
-      type  = "spread"
-      field = "instanceId"
-    }
-  }
   dynamic "load_balancer" {
     for_each = var.aws_lb_target_group_arn != "" ? [1] : []
     content {
@@ -96,7 +80,6 @@ resource "aws_ecs_service" "main" {
 }
 
 resource "aws_appautoscaling_target" "ecs_target" {
-  count              = var.logging ? 0 : 1
   max_capacity       = 4
   min_capacity       = 1
   resource_id        = "service/${var.cluster_name}/${aws_ecs_service.main.name}"
@@ -106,12 +89,11 @@ resource "aws_appautoscaling_target" "ecs_target" {
 
 
 resource "aws_appautoscaling_policy" "ecs_policy_memory" {
-  count              = var.logging ? 0 : 1
   name               = "memory-autoscaling"
   policy_type        = "TargetTrackingScaling"
-  resource_id        = aws_appautoscaling_target.ecs_target[0].resource_id
-  scalable_dimension = aws_appautoscaling_target.ecs_target[0].scalable_dimension
-  service_namespace  = aws_appautoscaling_target.ecs_target[0].service_namespace
+  resource_id        = aws_appautoscaling_target.ecs_target.resource_id
+  scalable_dimension = aws_appautoscaling_target.ecs_target.scalable_dimension
+  service_namespace  = aws_appautoscaling_target.ecs_target.service_namespace
 
   target_tracking_scaling_policy_configuration {
     predefined_metric_specification {
@@ -125,12 +107,11 @@ resource "aws_appautoscaling_policy" "ecs_policy_memory" {
 }
 
 resource "aws_appautoscaling_policy" "ecs_policy_cpu" {
-  count              = var.logging ? 0 : 1
   name               = "cpu-autoscaling"
   policy_type        = "TargetTrackingScaling"
-  resource_id        = aws_appautoscaling_target.ecs_target[0].resource_id
-  scalable_dimension = aws_appautoscaling_target.ecs_target[0].scalable_dimension
-  service_namespace  = aws_appautoscaling_target.ecs_target[0].service_namespace
+  resource_id        = aws_appautoscaling_target.ecs_target.resource_id
+  scalable_dimension = aws_appautoscaling_target.ecs_target.scalable_dimension
+  service_namespace  = aws_appautoscaling_target.ecs_target.service_namespace
 
   target_tracking_scaling_policy_configuration {
     predefined_metric_specification {
@@ -144,7 +125,6 @@ resource "aws_appautoscaling_policy" "ecs_policy_cpu" {
 }
 
 resource "aws_launch_configuration" "ecs_launch_config" {
-  count                = var.logging ? 0 : 1
   name_prefix          = "${var.name}-${var.environment}-"
   image_id             = var.ami
   iam_instance_profile = var.instance_profile
@@ -161,10 +141,9 @@ EOF
 }
 
 resource "aws_autoscaling_group" "ecs_asg" {
-  count                = var.logging ? 0 : 1
   name_prefix          = "${var.name}-${var.environment}-"
   vpc_zone_identifier  = var.subnets.*.id
-  launch_configuration = aws_launch_configuration.ecs_launch_config[0].name
+  launch_configuration = aws_launch_configuration.ecs_launch_config.name
 
   desired_capacity          = 1
   min_size                  = 1

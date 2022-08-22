@@ -8,12 +8,6 @@ variable "environment" {
   description = "Environment"
 }
 
-variable "logging" {
-  type        = bool
-  description = "whether this service is for logging"
-  default     = false
-}
-
 variable "cluster_name" {
   type        = string
   description = "Name of ECS Cluster"
