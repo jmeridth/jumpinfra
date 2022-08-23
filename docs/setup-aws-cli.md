@@ -3,12 +3,12 @@
 ## TL;DR
 
 - `brew install awscli`
-- `aws configure --profile jumptest`
+- `aws configure --profile jumpstaging`
 
 You'll end up with something like this in `~/.aws/credentials` file.
 
 ```ini
-[jumptest]
+[jumpstaging]
 region=us-west-2
 aws_access_key_id = REDACTED
 aws_secret_access_key = REDACTED
@@ -28,7 +28,7 @@ This will install the v2 aws cli
 
 ## Configure
 
-run `aws configure --profile jumptest`
+run `aws configure --profile jumpstaging`
 
 [Docs on this](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-quickstart.html)
 

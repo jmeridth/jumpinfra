@@ -1,0 +1,4 @@
+web_env_vars:
+  LOG_LEVEL: info
+  NEXT_PUBLIC_BACKEND_URL: https://api.test.jump.co/v1
+  NEXT_PUBLIC_SENTRY_SAMPLE_RATE: 0.1
