@@ -16,7 +16,7 @@ jobs:
         run: |
           env=${{ github.event.client_payload.slash_command.args.named.env }}
           if [[ -z "$env" ]]; then exit 1; fi
-          echo ::set-output name=env::$env
+          echo "jump_env=$env" >> $GITHUB_ENV
         continue-on-error: true
       - name: Missing environment name notification
         if: steps.vars.outcome == 'failure'
@@ -43,12 +43,12 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_TERRAFORM_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_TERRAFORM_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.REGION }}
-      - run: echo ${{ secrets[format('{0}_SECRETS', steps.vars.outputs.env)] }} > ./${{ steps.vars.outputs.env }}.tmp
-      - run: base64 -d ./${{ steps.vars.outputs.env }}.tmp > ./terraform/secrets.${{ steps.vars.outputs.env }}.tfvars.json
-      - run: rm ./${{ steps.vars.outputs.env }}.tmp
+      - run: echo ${{ secrets[format('{0}_SECRETS', env.jump_env)] }} > ./${{ steps.vars.outputs.env }}.tmp
+      - run: base64 -d ./${{ env.jump_env }}.tmp > ./terraform/secrets.${{ steps.vars.outputs.env }}.tfvars.json
+      - run: rm ./${{ env.jump_env }}.tmp
       - name: Check secrets keys
         id: check_secrets
-        run: python scripts/check_secrets.py ${{ steps.vars.outputs.env }}
+        run: python scripts/check_secrets.py ${{ env.jump_env }}
       - uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: 1.2.6
@@ -60,7 +60,7 @@ jobs:
       - name: Terraform Init
         id: init
         run: |
-          terraform init -backend-config="${{ steps.vars.outputs.env }}.tfbackend" -var-file="secrets.${{ steps.vars.outputs.env }}.tfvars.json" -var-file="envvars.${{ steps.vars.outputs.env }}.tfvars.json"
+          terraform init -backend-config="${{ env.jump_env }}.tfbackend" -var-file="secrets.${{ steps.vars.outputs.env }}.tfvars.json" -var-file="envvars.${{ steps.vars.outputs.env }}.tfvars.json"
         working-directory: terraform
       - name: Terraform Validate
         id: validate
@@ -76,7 +76,7 @@ jobs:
       - name: Terraform Apply
         id: apply
         run: |
-          terraform apply -auto-approve -var-file="secrets.${{ steps.vars.outputs.env }}.tfvars.json" -var-file="envvars.${{ steps.vars.outputs.env }}.tfvars.json"
+          terraform apply -auto-approve -var-file="secrets.${{ env.jump_env }}.tfvars.json" -var-file="envvars.${{ steps.vars.outputs.env }}.tfvars.json"
         working-directory: terraform
       - name: Terraform Apply Output
         uses: peter-evans/create-or-update-comment@v2
@@ -114,7 +114,7 @@ jobs:
           SLACK_COLOR: ${{ job.status }}
           SLACK_MESSAGE: |
             Terraform Apply ${{ job.status }}
-          SLACK_TITLE: "Terraform Apply: ${{ steps.vars.outputs.env }} environment"
+          SLACK_TITLE: "Terraform Apply: ${{ env.jump_env }} environment"
           SLACK_WEBHOOK: ${{ secrets.SLACK_INFRA_WEBHOOK_URL }}
           SLACK_FOOTER: "Powered by GitHub Actions and Terraform"
       - name: Terraform Apply Status

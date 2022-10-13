@@ -14,7 +14,7 @@ jobs:
         run: |
           env=${{ github.event.client_payload.slash_command.args.named.env }}
           if [[ -z "$env" ]]; then exit 1; fi
-          echo ::set-output name=env::$env
+          echo "jump_env=$env" >> $GITHUB_ENV
         continue-on-error: true
       - name: Missing environment name notification
         if: steps.vars.outcome == 'failure'
@@ -41,13 +41,13 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_TERRAFORM_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_TERRAFORM_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.REGION }}
-      - run: echo ${{ secrets[format('{0}_SECRETS', steps.vars.outputs.env)] }} > ./${{ steps.vars.outputs.env }}.tmp
-      - run: base64 -d ./${{ steps.vars.outputs.env }}.tmp > ./terraform/secrets.${{ steps.vars.outputs.env }}.tfvars.json
-      - run: rm ./${{ steps.vars.outputs.env }}.tmp
+      - run: echo ${{ secrets[format('{0}_SECRETS', env.jump_env)] }} > ./${{ steps.vars.outputs.env }}.tmp
+      - run: base64 -d ./${{ env.jump_env }}.tmp > ./terraform/secrets.${{ steps.vars.outputs.env }}.tfvars.json
+      - run: rm ./${{ env.jump_env }}.tmp
       - uses: actions/setup-python@v4
       - name: Check secrets keys
         id: check_secrets
-        run: python scripts/check_secrets.py ${{ steps.vars.outputs.env }}
+        run: python scripts/check_secrets.py ${{ env.jump_env }}
       - uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: 1.2.7
@@ -59,7 +59,7 @@ jobs:
       - name: Terraform Init
         id: init
         run: |
-          terraform init -backend-config="${{ steps.vars.outputs.env }}.tfbackend" -var-file="secrets.${{ steps.vars.outputs.env }}.tfvars.json" -var-file="envvars.${{ steps.vars.outputs.env }}.tfvars.json"
+          terraform init -backend-config="${{ env.jump_env }}.tfbackend" -var-file="secrets.${{ steps.vars.outputs.env }}.tfvars.json" -var-file="envvars.${{ steps.vars.outputs.env }}.tfvars.json"
         working-directory: terraform
       - name: Terraform Validate
         id: validate
@@ -75,7 +75,7 @@ jobs:
       - name: Terraform Plan
         id: plan
         run: |
-          terraform plan -no-color -var-file="secrets.${{ steps.vars.outputs.env }}.tfvars.json" -var-file="envvars.${{ steps.vars.outputs.env }}.tfvars.json"
+          terraform plan -no-color -var-file="secrets.${{ env.jump_env }}.tfvars.json" -var-file="envvars.${{ steps.vars.outputs.env }}.tfvars.json"
         continue-on-error: true
         working-directory: terraform
       - name: Terraform Plan Output
