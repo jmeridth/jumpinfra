@@ -1,5 +1,4 @@
-resource "aws_acm_certificate" "certificate" {
-  count             = var.existing ? 0 : 1
+resource "aws_acm_certificate" "jump" {
   domain_name       = var.domain_name
   validation_method = var.verification_method
 
@@ -8,8 +7,7 @@ resource "aws_acm_certificate" "certificate" {
   }
 }
 
-data "aws_acm_certificate" "certificate" {
-  count    = var.existing ? 1 : 0
-  domain   = var.domain_name
-  statuses = ["ISSUED"]
+resource "aws_acm_certificate_validation" "jump" {
+  certificate_arn         = aws_acm_certificate.jump.arn
+  validation_record_fqdns = [var.route53_record_fqdn]
 }

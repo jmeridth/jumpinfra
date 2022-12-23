@@ -3,10 +3,9 @@ variable "domain_name" {
   description = "Certificate Domain name"
 }
 
-variable "existing" {
-  type        = bool
-  default     = false
-  description = "Use existing certificate"
+variable "route53_record_fqdn" {
+  type        = string
+  description = "Route53 record FQDN"
 }
 
 variable "verification_method" {

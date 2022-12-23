@@ -23,7 +23,7 @@ cd docker
 make ecr
 ```
 
-This will build and push a new debugger image to test ECR for the debugger image
+This will build and push a new debugger image to staging ECR for the debugger image
 
 ```bash
 # from root of repo

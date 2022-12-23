@@ -7,7 +7,7 @@ resource "aws_lb" "main" {
 
   access_logs {
     bucket  = aws_s3_bucket.lb_logs.bucket
-    prefix  = "test-lb"
+    prefix  = "${var.environment}-lb"
     enabled = true
   }
 
