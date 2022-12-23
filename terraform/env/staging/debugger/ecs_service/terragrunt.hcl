@@ -11,7 +11,7 @@ dependency "ami" {
   mock_outputs = {
     id = "placeholder"
   }
-  skip_outputs = true
+  mock_outputs_merge_strategy_with_state = "shallow"
 }
 
 dependency "db" {
@@ -20,7 +20,7 @@ dependency "db" {
     host_address = "placeholder"
     name         = "placeholder"
   }
-  skip_outputs = true
+  mock_outputs_merge_strategy_with_state = "shallow"
 }
 
 dependency "ecr" {
@@ -28,7 +28,7 @@ dependency "ecr" {
   mock_outputs = {
     aws_ecr_repository_url = "placeholder"
   }
-  skip_outputs = true
+  mock_outputs_merge_strategy_with_state = "shallow"
 }
 
 dependency "ecs_cluster" {
@@ -37,18 +37,18 @@ dependency "ecs_cluster" {
     id   = "placeholder"
     name = "placeholder"
   }
-  skip_outputs = true
+  mock_outputs_merge_strategy_with_state = "shallow"
 }
 
 dependency "iam" {
   config_path = find_in_parent_folders("iam")
   mock_outputs = {
     ecs_agent_name               = "placeholder"
-    ecs_task_execution_role_arn  = "placeholder"
+    ecs_task_execution_role_arn  = "arn:aws:*:us-west-2:aws:placeholder"
     ecs_task_execution_role_name = "placeholder"
-    ecs_task_role_arn            = "placeholder"
+    ecs_task_role_arn            = "arn:aws:*:us-west-2:aws:placeholder"
   }
-  skip_outputs = true
+  mock_outputs_merge_strategy_with_state = "shallow"
 }
 
 dependency "s3" {
@@ -56,15 +56,15 @@ dependency "s3" {
   mock_outputs = {
     bucket_name = "placeholder"
   }
-  skip_outputs = true
+  mock_outputs_merge_strategy_with_state = "shallow"
 }
 
 dependency "secrets" {
   config_path = find_in_parent_folders("api/secrets")
   mock_outputs = {
-    secrets = "placeholder"
+    secrets = [{ "name" : "placeholder", "valueFrom" : "placeholder" }]
   }
-  skip_outputs = true
+  mock_outputs_merge_strategy_with_state = "shallow"
 }
 
 dependency "security_group" {
@@ -72,15 +72,15 @@ dependency "security_group" {
   mock_outputs = {
     id = "placeholder"
   }
-  skip_outputs = true
+  mock_outputs_merge_strategy_with_state = "shallow"
 }
 
 dependency "vpc" {
   config_path = find_in_parent_folders("vpc")
   mock_outputs = {
-    private_subnets = "placeholder"
+    private_subnets = [{ "id" : "placeholder" }]
   }
-  skip_outputs = true
+  mock_outputs_merge_strategy_with_state = "shallow"
 }
 
 locals {
@@ -93,7 +93,7 @@ inputs = {
   cluster_name    = dependency.ecs_cluster.outputs.name
   container_image = "${dependency.ecr.outputs.aws_ecr_repository_url}:latest"
   container_env_vars = merge(
-    local.env_vars,
+    local.env_vars["api_env_vars"],
     tomap({
       "AWS_S3_BUCKET"    = dependency.s3.outputs.bucket_name
       "TYPEORM_HOST"     = dependency.db.outputs.host_address
@@ -110,5 +110,6 @@ inputs = {
   ecs_task_role_arn            = dependency.iam.outputs.ecs_task_role_arn
   instance_profile             = dependency.iam.outputs.ecs_agent_name
   service_desired_count        = 2
+  ssm_parameter_store_prefix   = "api"
   subnets                      = dependency.vpc.outputs.private_subnets
 }

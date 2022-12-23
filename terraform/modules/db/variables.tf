@@ -19,7 +19,7 @@ variable "instance_class" {
 }
 
 variable "password" {
-  type        = number
+  type        = string
   description = "Database password"
   sensitive   = true
 }
@@ -30,7 +30,9 @@ variable "port" {
 }
 
 variable "private_subnets" {
-  type        = list(string)
+  type = list(object({
+    id = string
+  }))
   description = "List of private subnets"
 }
 
@@ -46,7 +48,7 @@ variable "stack_name" {
 }
 
 variable "username" {
-  type        = number
+  type        = string
   description = "Database user"
   sensitive   = true
 }

@@ -9,9 +9,9 @@ terraform {
 dependency "iam" {
   config_path = find_in_parent_folders("iam")
   mock_outputs = {
-    ecs_task_encrypt_json = "placeholder"
+    ecs_task_encrypt_json = "{}"
   }
-  skip_outputs = true
+  mock_outputs_merge_strategy_with_state = "shallow"
 }
 
 inputs = {

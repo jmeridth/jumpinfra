@@ -1,4 +1,5 @@
 ENV ?= staging
+LOG_LEVEL ?= error
 
 define ecs_ssh
 	aws --profile jump${ENV} \
@@ -41,6 +42,7 @@ clearcache: ## Clear Terragrunt cache
 validate: ## Terragrunt validate
 	cd env/${ENV} && \
 	export AWS_PROFILE=jump${ENV} && \
+	export TERRAGRUNT_LOG_LEVEL=${LOG_LEVEL} && \
 	terragrunt run-all validate
 
 .PHONY : api_keys
@@ -101,13 +103,15 @@ init: ## Run Terragrunt Init
 plan: ## Run Terragrunt Plan
 	cd env/${ENV} && \
 	export AWS_PROFILE=jump${ENV} && \
+	export TERRAGRUNT_LOG_LEVEL=${LOG_LEVEL} && \
 	terragrunt run-all plan
 
 .PHONY : apply
 apply: ## Run Terragrunt Apply
 	cd env/${ENV} && \
 	export AWS_PROFILE=jump${ENV} && \
-	terragrunt run-all apply -auto-approve
+	export TERRAGRUNT_LOG_LEVEL=${LOG_LEVEL} && \
+	terragrunt run-all apply
 
 .PHONY : api
 api: ## SSH onto ECS API instance

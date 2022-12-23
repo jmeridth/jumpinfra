@@ -8,18 +8,31 @@ variable "environment" {
   description = "Environment"
 }
 
-variable "listener_rules" {
+variable "path_patterns_listener_rules" {
   type = list(object({
+    name             = string
     host_headers     = list(string)
     path_patterns    = list(string)
     priority         = number
     target_group_arn = string
   }))
-  description = "List of listener rules"
+  description = "List of normal listener rules"
+}
+
+variable "listener_rules" {
+  type = list(object({
+    name             = string
+    host_headers     = list(string)
+    priority         = number
+    target_group_arn = string
+  }))
+  description = "List of normal listener rules"
 }
 
 variable "public_subnets" {
-  type        = list(string)
+  type = list(object({
+    id = string
+  }))
   description = "List of public subnets"
 }
 

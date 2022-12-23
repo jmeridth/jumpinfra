@@ -22,7 +22,7 @@ resource "aws_db_instance" "jump" {
 
 resource "aws_db_subnet_group" "private" {
   name       = "private"
-  subnet_ids = var.private_subnets
+  subnet_ids = [for subnet in var.private_subnets : subnet.id]
 
   tags = {
     Name = "private"

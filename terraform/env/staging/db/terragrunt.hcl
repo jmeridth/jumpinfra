@@ -11,16 +11,16 @@ dependency "security_group" {
   mock_outputs = {
     id = "placeholder"
   }
-  skip_outputs = true
+  mock_outputs_merge_strategy_with_state = "shallow"
 }
 
 dependency "vpc" {
   config_path = find_in_parent_folders("vpc")
   mock_outputs = {
     id              = "placeholder"
-    private_subnets = "placeholder"
+    private_subnets = [{ "id" : "placeholder" }]
   }
-  skip_outputs = true
+  mock_outputs_merge_strategy_with_state = "shallow"
 }
 
 locals {

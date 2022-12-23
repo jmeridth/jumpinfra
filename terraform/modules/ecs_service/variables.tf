@@ -99,6 +99,11 @@ variable "service_desired_count" {
   description = "Number of services running in parallel"
 }
 
+variable "ssm_parameter_store_prefix" {
+  type        = string
+  description = "SSM Parameter Store prefix"
+}
+
 variable "subnets" {
   type        = list(any)
   description = "List of subnet IDs"

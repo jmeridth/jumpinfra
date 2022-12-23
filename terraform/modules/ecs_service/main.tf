@@ -11,7 +11,7 @@ resource "aws_iam_policy" "parameter_store" {
           "ssm:GetParameter*",
           "ssm:DescribeParameters*"
         ],
-        Resource = "arn:aws:ssm:*:*:parameter/${var.environment}/${var.name}/*"
+        Resource = "arn:aws:ssm:*:*:parameter/${var.environment}/${var.ssm_parameter_store_prefix}/*"
       }
     ]
   })
@@ -116,16 +116,25 @@ resource "aws_appautoscaling_policy" "ecs_policy_cpu" {
   }
 }
 
-resource "aws_launch_configuration" "ecs_launch_config" {
-  name_prefix          = "${var.name}-${var.environment}-"
-  image_id             = var.ami
-  iam_instance_profile = var.instance_profile
-  security_groups      = var.ecs_service_security_groups
-  user_data            = <<EOF
-#!/bin/bash
-echo ECS_CLUSTER=${var.cluster_name} >> /etc/ecs/ecs.config
-EOF
-  instance_type        = var.instance_type
+resource "aws_launch_template" "ecs_launch_template" {
+  name_prefix            = "${var.name}-${var.environment}-"
+  image_id               = var.ami
+  instance_type          = var.instance_type
+  user_data              = base64encode("#!/bin/bash\necho ECS_CLUSTER=${var.cluster_name} >> /etc/ecs/ecs.config")
+  update_default_version = true
+  vpc_security_group_ids = var.ecs_service_security_groups
+
+  iam_instance_profile {
+    name = var.instance_profile
+  }
+
+  tag_specifications {
+    resource_type = "instance"
+
+    tags = {
+      Name = "${var.name}-${var.environment}"
+    }
+  }
 
   lifecycle {
     create_before_destroy = true
@@ -133,9 +142,13 @@ EOF
 }
 
 resource "aws_autoscaling_group" "ecs_asg" {
-  name_prefix          = "${var.name}-${var.environment}-"
-  vpc_zone_identifier  = var.subnets.*.id
-  launch_configuration = aws_launch_configuration.ecs_launch_config.name
+  name_prefix         = "${var.name}-${var.environment}-"
+  vpc_zone_identifier = var.subnets.*.id
+
+  launch_template {
+    id      = aws_launch_template.ecs_launch_template.id
+    version = "$Latest"
+  }
 
   desired_capacity          = 1
   min_size                  = 1

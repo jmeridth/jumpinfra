@@ -3,7 +3,7 @@ resource "aws_lb" "main" {
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.lb.id]
-  subnets            = var.public_subnets
+  subnets            = [for subnet in var.public_subnets : subnet.id]
 
   access_logs {
     bucket  = aws_s3_bucket.lb_logs.bucket
@@ -84,7 +84,7 @@ resource "aws_lb_listener" "https" {
 }
 
 resource "aws_lb_listener_rule" "endpoint" {
-  for_each = var.listener_rules
+  for_each = { for rule in var.listener_rules : rule.name => rule }
 
   listener_arn = aws_lb_listener.https.arn
   priority     = each.value["priority"]
@@ -94,12 +94,27 @@ resource "aws_lb_listener_rule" "endpoint" {
     target_group_arn = each.value["target_group_arn"]
   }
 
-  dynamic "condition" {
-    for_each = each.value["path_patterns"]
-    content {
-      path_pattern {
-        values = condition.value
-      }
+  condition {
+    host_header {
+      values = each.value["host_headers"]
+    }
+  }
+}
+
+resource "aws_lb_listener_rule" "health" {
+  for_each = { for rule in var.path_patterns_listener_rules : rule.name => rule }
+
+  listener_arn = aws_lb_listener.https.arn
+  priority     = each.value["priority"]
+
+  action {
+    type             = "forward"
+    target_group_arn = each.value["target_group_arn"]
+  }
+
+  condition {
+    path_pattern {
+      values = each.value["path_patterns"]
     }
   }
 
