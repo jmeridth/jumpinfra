@@ -23,6 +23,7 @@ api_env_vars:
   SERVER_PORT: "8080"
   TYPEORM_AUTOMIGRATION: "true"
   TYPEORM_CONNECTION: "postgres"
+  TYPEORM_LOGGING: "all"
   TYPEORM_MIGRATIONS: "./dist/config/database/migrations/*.js"
   TYPEORM_PORT: "5432"
   TYPEORM_SYNCHRONIZE: "false"
