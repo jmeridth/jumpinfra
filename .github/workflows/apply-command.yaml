@@ -48,7 +48,7 @@ jobs:
           aws-secret-access-key: ${{ secrets[format('AWS_TERRAFORM_SECRET_ACCESS_KEY_{0}', env.jump_env)] }}
           aws-region: ${{ env.REGION }}
       - name: Get secrets
-      - run: |
+        run: |
           echo ${{ secrets[format('API_SECRETS_{0}', env.jump_env)] }} > ./${{ steps.vars.outputs.env }}.api.tmp
           base64 -d ./${{ env.jump_env }}.api.tmp > ./${{ env.tf_working_dir }}/env/${{ env.jump_env }}/api.secrets.${{ env.jump_env }}.yaml
           rm ./${{ env.jump_env }}.api.tmp
