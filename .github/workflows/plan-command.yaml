@@ -54,9 +54,10 @@ jobs:
           base64 -d ./${{ env.jump_env }}.web.tmp > ./${{ env.tf_working_dir }}/env/${{ env.jump_env }}/web.secrets.${{ env.jump_env }}.yaml
           rm ./${{ env.jump_env }}.web.tmp
       - name: Check secrets
-        uses: mikefarah/yq@master
         id: check_secrets
-        run: make keys
+        uses: mikefarah/yq@master
+        with:
+          cmd: make keys
         working-directory: ${{ env.tf_working_dir }}
       - name: 'Terragrunt Init'
         id: init
