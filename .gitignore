@@ -1,3 +1,9 @@
+.DS_Store
+
+# Terragrunt
+terragrunt.iml
+.terragrunt-cache
+
 # Local .terraform directories
 **/.terraform/*
 
@@ -15,10 +21,12 @@ crash.*.log
 # to change depending on the environment.
 *.tfvars
 *.tfvars.json
+*.secrets.*.yaml
 
-# Allow all .tfvars.example files, which are templates for the actual tfvars
+# Allow all example files, which are templates for the actual variable
 # files that users will need
 !*.example.tfvars.json
+!*.secrets.template.yaml
 
 # Allow all envvars.*.tfvars.json files, which include the environment variables
 # for an application that are not secrets

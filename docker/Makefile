@@ -1,7 +1,7 @@
-# ONLY FOR TEST ENVIRONMENT
-# HENCE test IS HARDCODED INSTEAD OF USER ${ENV}
+# ONLY FOR STAGING ENVIRONMENT
+# HENCE staging IS HARDCODED INSTEAD OF USER ${ENV}
 
-ACCOUNT_ID = $(shell aws --profile jumptest sts get-caller-identity --query "Account" --output text)
+ACCOUNT_ID = $(shell aws --profile jumpstaging sts get-caller-identity --query "Account" --output text)
 
 .PHONY : help
 help: # Display help
@@ -12,17 +12,17 @@ help: # Display help
 
 .PHONY : build
 build: ## Build docker image locally
-	docker build --platform=linux/amd64 -f Dockerfile.debugger -t debugger-test .
+	docker build --platform=linux/amd64 -f Dockerfile.debugger -t debugger-staging .
 
 .PHONY : ecr
 ecr: ## Build new container image and push to ECR
-	export AWS_PROFILE=jumptest
-	docker build --platform=linux/amd64 -f Dockerfile.debugger -t debugger-test .
-	docker tag debugger-test:latest ${ACCOUNT_ID}.dkr.ecr.us-west-2.amazonaws.com/debugger-test:latest
-	aws ecr get-login-password --profile jumptest --region us-west-2 | docker login --username AWS --password-stdin ${ACCOUNT_ID}.dkr.ecr.us-west-2.amazonaws.com
-	docker push ${ACCOUNT_ID}.dkr.ecr.us-west-2.amazonaws.com/debugger-test:latest
+	export AWS_PROFILE=jumpstaging
+	docker build --platform=linux/amd64 -f Dockerfile.debugger -t debugger-staging .
+	docker tag debugger-staging:latest ${ACCOUNT_ID}.dkr.ecr.us-west-2.amazonaws.com/debugger-staging:latest
+	aws ecr get-login-password --profile jumpstaging --region us-west-2 | docker login --username AWS --password-stdin ${ACCOUNT_ID}.dkr.ecr.us-west-2.amazonaws.com
+	docker push ${ACCOUNT_ID}.dkr.ecr.us-west-2.amazonaws.com/debugger-staging:latest
 
 .PHONY : deploy
 deploy: ecr ## Build new container image, push to ECR and deploy to ECS
-	export AWS_PROFILE=jumptest
-	aws ecs update-service --cluster jumpco-cluster-test --service debugger-test --force-new-deployment
+	export AWS_PROFILE=jumpstaging
+	aws ecs update-service --cluster jumpco-cluster-staging --service debugger-staging --force-new-deployment

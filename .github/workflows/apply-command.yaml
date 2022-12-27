@@ -48,7 +48,8 @@ jobs:
       - run: rm ./${{ env.jump_env }}.tmp
       - name: Check secrets keys
         id: check_secrets
-        run: python scripts/check_secrets.py ${{ env.jump_env }}
+        run: make keys
+        working-directory: terraform
       - uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: 1.2.6
