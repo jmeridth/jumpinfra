@@ -17,7 +17,7 @@ define keys_diff
 endef
 
 define b64e_secrets
-	cat env/${ENV}/$(1)/$(1).secrets.${ENV}.yaml | base64 | pbcopy
+	cat ./env/${ENV}/$(1).secrets.${ENV}.yaml | base64 | pbcopy
 endef
 
 .PHONY : help
@@ -85,9 +85,6 @@ b64e_api_secrets: ## Base64 encode API secrets to be stored in GitHub secrets fo
 .PHONY : b64e_web_secrets
 b64e_web_secrets: ## Base64 encode WEB secrets to be stored in GitHub secrets for CI
 	$(call b64e_secrets,web)
-
-.PHONY : b64e_all_secrets
-b64e_all_secrets: b64e_api_secrets b64e_web_secrets ## Base64 encode secrets to be stored in GitHub secrets for CI
 
 .PHONY : console
 console: ## Terragrunt console
