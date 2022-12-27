@@ -4,6 +4,10 @@ on:
     types: [plan-command]
 env:
   REGION: us-west-2
+  TERRAGRUNT_LOG_LEVEL: info
+  tf_version: 1.3.2
+  tg_version: 0.39.1
+  tf_working_dir: terraform
 jobs:
   terraformPlan:
     name: Terraform Plan
@@ -38,75 +42,57 @@ jobs:
         id: aws-creds
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          aws-access-key-id: ${{ secrets.AWS_TERRAFORM_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_TERRAFORM_SECRET_ACCESS_KEY }}
+          aws-access-key-id: ${{ secrets[format('AWS_TERRAFORM_ACCESS_KEY_ID_{0}', env.jump_env)] }}
+          aws-secret-access-key: ${{ secrets[format('AWS_TERRAFORM_SECRET_ACCESS_KEY_{0}', env.jump_env)] }}
           aws-region: ${{ env.REGION }}
-      - run: echo ${{ secrets[format('{0}_SECRETS', env.jump_env)] }} > ./${{ steps.vars.outputs.env }}.tmp
-      - run: base64 -d ./${{ env.jump_env }}.tmp > ./terraform/secrets.${{ steps.vars.outputs.env }}.tfvars.json
-      - run: rm ./${{ env.jump_env }}.tmp
-      - uses: actions/setup-python@v4
-      - name: Check secrets keys
+      - name: Get secrets
+      - run: |
+          echo ${{ secrets[format('API_SECRETS_{0}', env.jump_env)] }} > ./${{ steps.vars.outputs.env }}.api.tmp
+          base64 -d ./${{ env.jump_env }}.api.tmp > ./${{ env.tf_working_dir }}/env/${{ env.jump_env }}/api.secrets.${{ env.jump_env }}.yaml
+          rm ./${{ env.jump_env }}.api.tmp
+          echo ${{ secrets[format('WEB_SECRETS_{0}', env.jump_env)] }} > ./${{ steps.vars.outputs.env }}.web.tmp
+          base64 -d ./${{ env.jump_env }}.web.tmp > ./${{ env.tf_working_dir }}/env/${{ env.jump_env }}/web.secrets.${{ env.jump_env }}.yaml
+          rm ./${{ env.jump_env }}.web.tmp
+      - name: Check secrets
+        uses: mikefarah/yq@master
         id: check_secrets
         run: make keys
-        working-directory: terraform
-      - uses: hashicorp/setup-terraform@v2
-        with:
-          terraform_version: 1.2.7
-      - name: Terraform fmt
-        id: fmt
-        run: terraform fmt -check
-        working-directory: terraform
-        continue-on-error: true
-      - name: Terraform Init
+        working-directory: ${{ env.tf_working_dir }}
+      - name: 'Terragrunt Init'
         id: init
-        run: |
-          terraform init -backend-config="${{ env.jump_env }}.tfbackend" -var-file="secrets.${{ steps.vars.outputs.env }}.tfvars.json" -var-file="envvars.${{ steps.vars.outputs.env }}.tfvars.json"
-        working-directory: terraform
-      - name: Terraform Validate
-        id: validate
-        run: terraform validate -no-color
-        working-directory: terraform
-      - uses: terraform-linters/setup-tflint@v2
-        name: Setup TFLint
+        uses: the-commons-project/terragrunt-github-actions@master
         with:
-          tflint_version: v0.39.1
-      - name: TFLint
-        run: make lint
-        working-directory: terraform
-      - name: Terraform Plan
-        id: plan
-        run: |
-          terraform plan -no-color -var-file="secrets.${{ env.jump_env }}.tfvars.json" -var-file="envvars.${{ steps.vars.outputs.env }}.tfvars.json"
-        continue-on-error: true
-        working-directory: terraform
-      - name: Terraform Plan Output
-        uses: peter-evans/create-or-update-comment@v2
+          tf_actions_version: ${{ env.tf_version }}
+          tg_actions_version: ${{ env.tg_version }}
+          tf_actions_subcommand: 'init'
+          tf_actions_working_dir: ${{ env.tf_working_dir }/env/${{ env.jump_env }}}
+          tf_actions_comment: true
         env:
-          PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
+          GITHUB_TOKEN: ${{ secrets.SLASH_COMMANDS_PAT }}
+      - name: 'Terragrunt Validate'
+        id: validate
+        uses: the-commons-project/terragrunt-github-actions@master
         with:
-          token: ${{ secrets.SLASH_COMMANDS_PAT }}
-          issue-number: ${{ github.event.client_payload.github.payload.issue.number }}
-          body: |
-            #### Terraform Format and Style 🖌 `${{ steps.fmt.outcome }}`
-            #### Terraform Initialization ⚙️ `${{ steps.init.outcome }}`
-            #### Terraform Validation 🤖 `${{ steps.validate.outcome }}`
-            <details><summary>Validation Output</summary>
-
-            ```
-            ${{ steps.validate.outputs.stdout }}
-            ```
-
-            </details>
-
-            #### Terraform Plan 📖 `${{ steps.plan.outcome }}`
-
-            <details><summary>Show Plan</summary>
-
-            ```
-            ${{ env.PLAN }}
-            ```
-
-            </details>
-      - name: Terraform Plan Status
+          tf_actions_version: ${{ env.tf_version }}
+          tg_actions_version: ${{ env.tg_version }}
+          tf_actions_binary: 'terraform'
+          tf_actions_subcommand: 'run-all validate'
+          tf_actions_working_dir: ${{ env.tf_working_dir }}/env/${{ env.jump_env }}
+          tf_actions_comment: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.SLASH_COMMANDS_PAT }}
+      - name: 'Terragrunt Plan'
+        id: plan
+        uses: the-commons-project/terragrunt-github-actions@master
+        with:
+          tf_actions_version: ${{ env.tf_version }}
+          tg_actions_version: ${{ env.tg_version }}
+          tf_actions_subcommand: 'run-all plan'
+          tf_actions_working_dir: ${{ env.tf_working_dir }}/env/${{ env.jump_env }}
+          tf_actions_comment: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.SLASH_COMMANDS_PAT }}
+        continue-on-error: true
+      - name: Terragrunt Plan Status
         if: steps.plan.outcome == 'failure'
         run: exit 1
