@@ -86,10 +86,6 @@ b64e_api_secrets: ## Base64 encode API secrets to be stored in GitHub secrets fo
 b64e_web_secrets: ## Base64 encode WEB secrets to be stored in GitHub secrets for CI
 	$(call b64e_secrets,web)
 
-.PHONY : console
-console: ## Terragrunt console
-	terragrunt console
-
 .PHONY : init
 init: ## Run Terragrunt Init
 	cd env/${ENV} && \
